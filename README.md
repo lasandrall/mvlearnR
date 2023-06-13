@@ -27,3 +27,6 @@ that will eventually be added to **mvlearnR** and  the accompanying web applicat
 Thus, we envision **mvlearnR** and our web application to be a one-stop place for comprehensive data integration, for both users of R (or Python) and non-users of these software. 
 
 If you have any questions or suggestions for improvements, please email: ssafo@umn.edu
+
+file:///G:/My%20Drive/Box%20Sync/Project/Multi-viewDashboard/mvlearnR%20PackageSandra/vignettes/Testing_Functionality_June132023.html
+
