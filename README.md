@@ -25,3 +25,5 @@ Currently, linear multivariate methods for integrative analysis and biomarker id
 (https://arxiv.org/abs/2111.06209) and nonlinear integrative analysis methods for biomarker identification (https://arxiv.org/abs/2302.07930; https://arxiv.org/abs/2111.09964; https://arxiv.org/abs/2304.04692) 
 that will eventually be added to **mvlearnR** and  the accompanying web application. Other methods we develop in the future will be added. 
 Thus, we envision **mvlearnR** and our web application to be a one-stop place for comprehensive data integration, for both users of R (or Python) and non-users of these software. 
+
+If you have any questions or suggestions for improvements, please email: ssafo@umn.edu
