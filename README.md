@@ -28,6 +28,6 @@ Thus, we envision **mvlearnR** and our web application to be a one-stop place fo
 
 If you have any questions or suggestions for improvements, please email: ssafo@umn.edu
 
-See (Overview.pdf) for overview of mvlearnR.
+See (mvlearnR_Overview.pdf) for overview of mvlearnR.
 
 
