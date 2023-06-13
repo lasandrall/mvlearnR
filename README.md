@@ -28,6 +28,6 @@ Thus, we envision **mvlearnR** and our web application to be a one-stop place fo
 
 If you have any questions or suggestions for improvements, please email: ssafo@umn.edu
 
-See (G:/My%20Drive/Box%20Sync/Project/Multi-viewDashboard/mvlearnR%20PackageSandra/vignettes/Testing_Functionality_June132023.html) for overview of mvlearnR.
+See (file:///G:/My%20Drive/Box%20Sync/Project/Multi-viewDashboard/mvlearnR%20PackageSandra/vignettes/Testing_Functionality_June132023.html) for overview of mvlearnR.
 
 
