@@ -531,7 +531,7 @@ umapPlot <- function(object,filteredData=TRUE){
 volcanoPlot <- function(object){
   mydatad=object[["pval.mat"]]
   method=object$method
-  padjust=object$adjmethod
+  padjust=object$padjust
   myplot=list()
   for(i in 1:length(object$X)){
     mydata2=mydatad[mydatad$View==i,]
