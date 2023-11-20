@@ -2,7 +2,7 @@
 title: "SELPCCA and SELP Predict"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{SELPCCA}
+  %\VignetteIndexEntry{SELPCCA and SELP Predict}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -366,6 +366,7 @@ By default, dashed lines indicate negative associations and solid lines represen
 Here's the relevance network for results using SELPCCA. We set the correlation cutoff to 0.58 for a less dense network.  
 
 ```{r NetworkPlotSELP ,eval=T}
+dev.off()
 networkPlot(mycvselpcca, cutoff=0.58)
 
 #The plot suggests that the protein Immunoglobulin lambda variable 3-1 (UID P01715) is highly positively correlated with many genes (including CDC6, CCNA2, UBE2C), and the protein Alpha-2-HS-glycoprotein (UID P02765) is highly negatively correlated with many genes (including CCNA2 and CDC6). 

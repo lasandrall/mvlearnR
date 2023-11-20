@@ -1,8 +1,8 @@
 ---
-title: "SELPCCA and SELP Predict"
+title: "SIDA"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{SELPCCA}
+  %\VignetteIndexEntry{SIDA}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
