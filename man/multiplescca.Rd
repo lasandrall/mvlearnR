@@ -46,10 +46,8 @@ The output is a list containing the following components.
 \item{maxcorr}{Estimated canonical correlation coefficient.}
 }
 \description{
-Performs n-fold cross validation to select optimal
-tuning parameters for SELPCCA based on training data. If you want
-to apply optimal tuning parameters to testing data, you may also
-use multiplescca.
+Function for estimating canonical correlation vectors for
+a fixed tuning parameters for each dataset.
 }
 \details{
 The function will return several R objects, which can be assigned

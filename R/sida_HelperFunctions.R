@@ -150,8 +150,6 @@ myfastIDAnonsparse=function(Xdata, Y,weight){
 
   result=list(tildealphamat=tildealphamat,tildelambda=tildelambda, myalphaoldmat=myalphaoldmat,sqrtminvmat=sqrtminvmat);
   return(result)
-
-
 }
 
 

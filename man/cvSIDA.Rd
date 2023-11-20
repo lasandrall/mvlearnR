@@ -2,7 +2,7 @@
 % Please edit documentation in R/sida.R
 \name{cvSIDA}
 \alias{cvSIDA}
-\title{Cross validation for Sparse Integrative Descriminant Analysis for Multi-View Data}
+\title{Cross validation for Sparse Integrative Discriminant Analysis for Multi-View Data}
 \usage{
 cvSIDA(
   Xdata = Xdata,
@@ -82,6 +82,8 @@ A list with the following components:
  \item{hatalpha}{A list of estimated sparse discriminant vectors for each view.}
  \item{PredictedClass}{ Predicted class. If AssignClassMethod=’Separate’, this will be a
  \eqn{ntest \times D} matrix, with each column the predicted class for each data.}
+ \item{PredictedClass.train}{Predicted class for train data. If AssignClassMethod=’Separate’, this will
+ \eqn{ntrain \times D} matrix, with each column the predicted class for each data.}
  \item{optTau}{Optimal tuning parameters for each view, not including covariates, if available.}
  \item{gridValues}{Grid values used for searching optimal tuning parameters.}
  \item{AssignClassMethod}{Classification method used. Joint or Separate.}
@@ -119,6 +121,19 @@ test.error=mycv$sidaerror
 test.correlation=mycv$sidacorrelation
 optTau=mycv$optTau
 hatalpha=mycv$hatalpha
+
+#Obtain more performance metrics (applicable to two classes only)
+ #train metrics
+ Y.pred=mycv$PredictedClass.train-1 #to get this in 0 and 1
+ Y.train=Y-1 #to get this in 0 and 1
+ train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+
+ print(train.metrics)
+ #obtain predicted class
+ Y.pred=mycv$PredictedClass-1 #to get this in 0 and 1
+ Ytest.in=Ytest-1 #to get this in 0 and 1
+ test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=TRUE)
+ print(test.metrics)
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022) , Sparse Linear

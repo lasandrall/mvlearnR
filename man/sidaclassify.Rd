@@ -2,7 +2,7 @@
 % Please edit documentation in R/sida.R
 \name{sidaclassify}
 \alias{sidaclassify}
-\title{Classification approach for SIDA}
+\title{Classification approach for SIDA and SIDANet}
 \usage{
 sidaclassify(
   hatalpha = hatalpha,

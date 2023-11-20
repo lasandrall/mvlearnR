@@ -98,8 +98,10 @@ classification error, otherwise, training error}
 \item{sidacorrelation}{Sum of pairwise RV coefficients. Normalized to be within 0
 and 1, inclusive.}
 \item{hatalpha}{A list of estimated sparse discriminant vectors for each view.}
-\item{PredictedClass}{Predicted class. If AssignClassMethod=’Separate’, this will
+\item{PredictedClass}{Predicted class for test data. If AssignClassMethod=’Separate’, this will
 be a \eqn{ntest \times D} matrix, with each column the predicted class for each data.}
+\item{PredictedClass.train}{Predicted class for train data. If AssignClassMethod=’Separate’, this will
+be a \eqn{ntrain \times D} matrix, with each column the predicted class for each data.}
 \item{optTau}{Optimal tuning parameters for each view, not including covariates,
 if available.}
 \item{gridValues}{Grid values used for searching optimal tuning paramters.}

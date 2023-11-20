@@ -75,7 +75,19 @@ test.correlation=mysida$sidacorrelation
 hatalpha=mysida$hatalpha
 
 predictedClass=mysida$PredictedClass
+#obtain more performance metrics (applicable to two classes)
 
+ #train metrics
+ Y.pred=mysida$PredictedClass.train-1 #to get this in 0 and 1
+ Y.train=Y-1 #to get this in 0 and 1
+ train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+ print(train.metrics)
+
+ #obtain test predicted class
+ Y.pred=mysida$PredictedClass-1 #to get this in 0 and 1
+ Ytest.in=Ytest-1 #to get this in 0 and 1
+ test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=TRUE)
+ print(test.metrics)
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022) , Sparse Linear

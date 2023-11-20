@@ -1,0 +1,473 @@
+---
+title: "SELPCCA and SELP Predict"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{SELPCCA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r prereq, eval=T}
+if(!"mvlearnR" %in% installed.packages()){
+    library(devtools)
+    devtools::install_github("lasandrall/mvlearnR")
+}
+library(mvlearnR)
+library(dplyr)
+
+# #library(devtools)
+# if (interactive()) {
+#   require("devtools", quietly = TRUE)
+#   # automatically attaches usethis
+# }
+# load_all()
+```
+
+The package *mvlearnR* and accompanying Shiny App is intended for integrating data from multiple sources
+(e.g. genomics, proteomics, metabolomics). Most existing software packages for multiview learning are decentralized,
+making it difficult for users to perform comprehensive integrative analysis. The new package wraps statistical and machine learning methods and graphical tools, providing a convenient and easy data integration workflow. For users with limited programming language, we provide a Shiny Application to facilitate data integration. The methods have potential to offer
+deeper insights into complex disease mechanisms.
+
+# Installation
+The package can be downloaded from GitHub at (https://github.com/lasandrall/mvlearnR). To install the package, you need to have the R-package *devtools* installed. Then use the function *install_github()* to install the package.
+
+
+# Data import and prefiltering 
+We provide real data pertaining to COVID-19 severity and status and several simulated data to demonstrate the use of the package. Simulated data for two views and a binary outcome could be read as *data(sidaData)*, *data(selpData)*. The COVID-19 data can be imported as *data(COVID)*. This is a list with 3 entries:  Proteomics, RNASeq, and Clinical data. 
+
+
+```{r IMPORTS, eval=T}
+#load data
+data("COVIDData")
+
+#make omics data numeric
+Proteomics= apply(as.matrix(COVIDData[[1]]), 2, as.numeric)
+RNASeq= apply(as.matrix(COVIDData[[2]]), 2, as.numeric)
+Clinical= COVIDData[[3]]
+
+table(Clinical$DiseaseStatus)
+
+
+set.seed(1234)
+stratified <- Clinical %>%
+  group_by(DiseaseStatus) %>%
+  sample_frac(size = .9)
+
+#train data
+Proteomics2=cbind.data.frame(Clinical[,1], Proteomics)
+Proteomics.Train=Proteomics2[Proteomics2[,1] %in% stratified$ID, ]
+Clinical.Train=Clinical[Clinical[,1] %in% stratified$ID, ]
+
+RNASeq2=cbind.data.frame(Clinical[,1], RNASeq)
+RNASeq.Train=RNASeq2[RNASeq2[,1] %in% stratified$ID, ]
+
+#test data
+set.diff=setdiff(Clinical[,1],stratified$ID)
+Proteomics.Test=Proteomics2[Proteomics2[,1] %in% set.diff, ]
+RNASeq.Test=RNASeq2[RNASeq2[,1] %in% set.diff, ]
+Clinical.Test=Clinical[Clinical[,1] %in% set.diff, ]
+
+#order data to ensure that the rows are the same
+Proteomics.Train=Proteomics.Train[order(Proteomics.Train[,1]),]
+Proteomics.Test=Proteomics.Test[order(Proteomics.Test[,1]),]
+
+RNASeq.Train=RNASeq.Train[order(RNASeq.Train[,1]),]
+RNASeq.Test=RNASeq.Test[order(RNASeq.Test[,1]),]
+
+Clinical.Train=Clinical.Train[order(Clinical.Train[,1]),]
+Clinical.Test=Clinical.Test[order(Clinical.Test[,1]),]
+
+```
+
+We provide functions to filter data either using supervised or unsupervised statistical methods. The function *filter.supervised()* can be used to filter each view using four methods: *linear*, *logistic*, *t-test*, and *Kruskal-Wallis (KW)* test. P-values can be adjusted for multiple hypothesis testing. The function *filter.unsupervised()* can be used to filter each view using unsupervised methods that include: *variance* and *interquartile range (IQR)* filtering. 
+
+Results from the supervised filtering approach could be visualized via volcano plots using the function *volcanoPlot()*. The filtered or original data could be visualized via UMAP with the function *umapPlot()*. 
+```{r FILTERING, eval=T}
+
+#Supervised filtering- Logistic regression with B-H adjusted pvalues
+X=list(Proteomics.Train[,-1], RNASeq.Train[,-1] )
+Xtest.in=list(Proteomics.Test[,-1], RNASeq.Test[,-1] ) #testing data will be subsetted to keep only variables that are significant in training set
+Y=Clinical.Train$DiseaseStatus.Indicator
+
+filterOmics=filter.supervised( X,
+          Y,
+          method = "logistic",
+          padjust=TRUE,
+          adjmethod="BH",
+          thresh = 0.05,
+          center = FALSE,
+          scale = FALSE,
+          log2TransForm = FALSE,
+          standardize=TRUE,
+          Xtest = Xtest.in
+                       )
+
+
+
+```
+
+
+
+# Unsupervised method for associating data from two sources using SELP
+We applied *mvlearnR* to integrate RNA sequencing and proteomics data to identify variables that maximize association between genes and proteins. For this purpose, we used the filtered data from above (i.e. *filterOmics* results). We also provide simulated data that could  be used. 
+
+We use the SELPCCA method. CCA is a  multivariate linear method for maximizing association between data from two sources. CCA finds weighted combinations of variables in each data that maximize the overall dependency structure between pairs of data. The function *cvselpscca()* can be used to obtain low-dimensional linear representations maximizing associations between the genes and proteins. It will allow users to select genes and proteins contributing to maximal correlation between the pairs of data.  In the example below, we obtain the first and second canonical variates for each view with the option  *ncancorr=2* in *cvselpscca()*. 
+
+Based on the results, there are 78 proteins with nonzero coefficients in the first canonical variate for View 1 (Proteomics data), and 32 genes for View 2 (RNASeq data). The second canonical variate has 54 proteins and 9 genes with nonzero coefficients for the proteomics and RNASeq data, respectively. The estimated canonical correlation coefficents are 0.64 and 0.6 for the first and second canonical correlation vectors, respectively. 
+```{r CVSELP, eval=T}
+
+#can use simulated data
+#data("selpData")
+#Xdata1 <- selpData[[1]]
+#Xdata2 <- selpData[[2]]
+
+#We use the filtered data from above  and obtain first and second canonical correlation vectors
+#We use cross-validation to choose tuning parameters for sparsity
+Xdata1 <- filterOmics$X[[1]] #proteomics
+Xdata2 <- filterOmics$X[[2]] #RNASeq
+
+mycvselpcca=cvselpscca(Xdata1, Xdata2, ncancorr=2)
+
+
+```
+
+
+# Prediction with learned low-dimensional representations from unsupervised methods
+Our goal is to use the learned low-dimensional representation(s) to discriminate between
+those with and without COVID-19, or to predict COVID-19 severity (defined as hospital free days [HFD45]). 
+Since SELPCCA is an unsupervised method, it can only be used to identify variables contributing to the maximum
+association between the two views. 
+
+If an outcome is available, one can associate the learned low-dimensional representation(s)
+with the outcome. We provide the function *selpscca.pred()* for this purpose. We provide the options *gaussian*, *binomial*, *poisson*, and *survival* to model continuous, categorical, count, or time-to-event data, respectively.  
+
+Application of this function using the first and second canonical variates for the genes and proteins and the outcome of COVID-19 status suggests that the first canonical variates for the proteomics and gene data are able to discriminate between those with and without COVID-19. 
+
+The function *predict()* can be used to predict out of sample data using the learned low-dimensional representations. The option *type* in *predict()* is the type of prediction required, and it follows the same definition  in *predict.glm()* and *predict.coxph()* in R. 
+
+We use results from cvselp() to predict COVID-19
+severity (defined as hospital free days [HFD45]). Note that HFD45 score of 0 indicates
+the highest severity and the patient was in the hospital after 45 days,
+or died before the 45-day period ended. A higher score indicates lower disease
+severity.
+
+
+Results suggest that the first canonical variate for view 1 is significantly associated with hospital free days (p-value < 0.05)
+```{r SELPPREDICTHFD45 ,echo=TRUE,message=FALSE,eval=T}
+
+#Use results from cvselpcca. One can also use selpPredict() to train the model by setting fitselpCCA=NULL. 
+
+Y.HFD45=as.numeric(Clinical.Train$HFD45)
+myresult.HFD45=selpscca.pred(Xdata1, Xdata2, Y.HFD45,ncancorr=2,fitselpCCA=mycvselpcca, family="gaussian",showProgress=T)
+
+print(summary(myresult.HFD45[["mod.fit"]])) 
+
+#Results suggest that the first canonical variate for view 1 (proteins) is significantly associated with hospital free days (p-value < 0.05), while the others are not significantly associated with hospital free days (p-value >= 0.05).
+
+
+```
+
+
+
+Predict out of sample data and obtain train and test performance metrics. 
+```{r SELPPREDICTHFD452 ,echo=TRUE,message=FALSE,eval=T}
+
+##Train Performance Metrics
+newpredictions=predict(myresult.HFD45, newdata=Xdata1, newdata2=Xdata2) 
+Y.pred=round(newpredictions$pred.mod)
+
+train.metrics=PerformanceMetrics(Y.pred,Y.HFD45,family='gaussian',isPlot=TRUE)
+print(train.metrics)
+
+
+##Test Performance Metrics
+Xtest1 <- filterOmics$Xtest[[1]] #proteomics
+Xtest2 <- filterOmics$Xtest[[2]] #RNASeq
+Y.test=as.numeric(Clinical.Test$HFD45)
+
+newpredictions=predict(myresult.HFD45, newdata=Xtest1, newdata2=Xtest2) 
+Y.pred=round(newpredictions$pred.mod)
+
+test.metrics=PerformanceMetrics(Y.pred,Y.test,family='gaussian',isPlot=TRUE)
+print(test.metrics)
+
+
+```
+
+
+We use results from cvselp() to predict COVID-19 class membership . We obtain predicted probabilities, round these probabilities for class assignment, and obtain classification error. 
+```{r SELPPREDICTStatus ,echo=TRUE,message=FALSE,eval=T}
+
+#Use results from cvselpcca. One can also use selpPredict() to train the model by setting fitselpCCA=NULL. 
+
+Y.train=Clinical.Train$DiseaseStatus.Indicator
+myresult=selpscca.pred(Xdata1, Xdata2, Y.train,fitselpCCA=mycvselpcca, family="binomial",showProgress=T)
+
+```
+
+Print summary of results. 
+
+Results suggest that the first canonical variate for view 1 and view 2 are significantly associated with COVID-19 status (p-value < 0.05). That is, the first canonical variates for views 1 (proteins) and 2 (genes) are able to discriminate between those with and without COVID-19.
+
+```{r SELPPREDICTStatus2 ,echo=TRUE,message=FALSE,eval=T}
+print(summary(myresult[["mod.fit"]])) 
+
+```
+
+
+Predict out of sample data and obtain prediction metrics 
+
+In this example we obtain predictions based on training data but one can obtain predictions based on testing data, too.
+
+For a binary outcome, we provide the following metrics:
+"Accuracy","Error rate","Sensitivity", "Specificity", "Matthews Correlation Coefficient (MCC)",
+"Balanced Accuracy","Balanced Error Rate", "F1 Score", "False.Discovery.Rate", and
+"Positive Predictive Value". 
+
+For a  continuous outcome, we provide the following metrics:
+"Mean Squared Error","Root Mean.Squared Error","Relative Squared Error",
+"Root Relative Squared.Error", "Root Absolute Error", "Mean Absolute Error".
+
+We provide an option to plot an ROC curve for a binary outcome, and a scatter plot of predicted and observed values, for a continuous outcome.
+
+```{r SELPPREDICTStatus3 ,echo=TRUE,message=FALSE,eval=T}
+
+
+##Train Performance Metrics
+newpredictions=predict(myresult, newdata=Xdata1, newdata2=Xdata2) 
+Y.pred=round(newpredictions$pred.mod)
+train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
+print(train.metrics)
+
+
+##Test Performance Metrics
+Xtest1 <- filterOmics$Xtest[[1]] #proteomics
+Xtest2 <- filterOmics$Xtest[[2]] #RNASeq
+Y.test=Clinical.Test$DiseaseStatus.Indicator
+newpredictions=predict(myresult, newdata=Xtest1, newdata2=Xtest2) 
+Y.pred=round(newpredictions$pred.mod)
+test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=FALSE)
+print(test.metrics)
+
+
+
+
+
+
+```
+
+
+
+# Visualizations in *mvlearnR* for SELPCCA and SELP-Predict
+
+
+# Volcano Plots
+Results from the supervised filtering approach for each data could
+be visualized via volcano plots using the function
+*volcanoPlot()*.
+
+
+```{r Volcano, eval=T}
+
+
+volcanoPlot(filterOmics)
+
+
+```
+
+# UMAP plots
+The filtered or original data could be
+visualized with UMAP (uniform manifold approximation and projection) with the function umapPlot(). Here, UMAP can be applied to PCA reduced data as well as the original or filtered data. 
+
+```{r UMAP, eval=T}
+
+
+umapPlot(filterOmics)
+
+
+```
+
+
+# Variable Importance Plots
+We provide the function *VarImportancePlot()* to visualize the weights (in absolute value) of the low-dimensional loadings. Since these loadings are standardized to have unit norm, a variable with larger weight contributes more to the association between the views (for SELPCCA) or to the association between the views and discrimination of classes within each view (for SIDA and SIDANet). We only show the top 20 variables and their weights but one can view data matrix for all variables.
+
+Here's the variable importance tables and  plots from SELPCCA. 
+```{r VIMPSELP, eval=T}
+
+VarImportancePlot(mycvselpcca)
+
+```
+
+
+# Discriminant Plots
+We provide the function *DiscriminantPlots()* to plot the discriminant vectors for visualizing class separation. 
+Here's an example plot with two classes, for the first canonical vector.
+
+```{r DiscPlot, eval=T}
+
+#train data
+Xdata1 <- filterOmics$X[[1]]
+Xdata2 <- filterOmics$X[[2]]
+Y=filterOmics$Y  
+Xdata=list(Xdata1, Xdata2)
+
+hatalpha=list(mycvselpcca$hatalpha[,1],mycvselpcca$hatbeta[,1])
+
+DiscriminantPlots(Xdata, Y,hatalpha,method.used="SELPCCA") 
+
+#test data
+Xtest1 <- filterOmics$Xtest[[1]] #proteomics
+Xtest2 <- filterOmics$Xtest[[2]] #RNASeq
+Xtest.in=list(Xtest1, Xtest2)
+Ytest.in=Clinical.Test$DiseaseStatus.Indicator
+
+DiscriminantPlots(Xtest.in, Ytest.in, hatalpha,method.used="SELPCCA") 
+
+#The classes are well-separated especially in the training set.
+
+```
+
+# Correlation Plots
+We also provide the function 
+*CorrelationPlots()* for visualizing correlations between estimated canonical vectors vectors.
+Here's an example graph with two classes and views moderately correlated.  Correlation estimate is  given in absolute value. 
+
+```{r CorrPlots, eval=T}
+
+Xdata1 <- filterOmics$X[[1]]
+Xdata2 <- filterOmics$X[[2]]
+Y=filterOmics$Y
+Xdata=list(Xdata1, Xdata2)
+
+hatalpha=list(mycvselpcca$hatalpha[,1],mycvselpcca$hatbeta[,1])
+CorrelationPlots(Xdata, Ytest=Y, hatalpha, method.used="SELPCCA")
+
+#We notice that the views are moderately correlated, and the classes are well-separated.
+
+```
+
+
+# Relevance Network Plot
+
+We provide the function *networkPlot()* to visualize associations of selected variables between pairs of views. We estimate pairwise similarity matrix using low-dimensional representations of our
+sparse integrative analysis methods (selpcca, sida, sidanet). We create bipartite graph (bigraph) where variables or nodes from one view are connected to variables or nodes from another view. We construct the bigraph from a pairwise similarity matrix obtained from the outputs of our integrative analysis methods.  We estimate the similarity score between a pair of selected variables from two views  by calculating the inner product of each selected variable and the sum of canonical variates (for SELPCCA) or discriminant vectors (for SIDA, SIDANet) for the pairs of views. The entries in the similarity matrix is a robust approximation of the Pearson correlation between pairs of variables and the two views under consideration. This network graph has potential to shed light on the complex associations between pairs of views.
+
+Variable pairs with high similarity score may be of interest. The relevance of the associations can be explored by changing the cutoff. This can also be used to reduce the size of the graph, for dense network. 
+
+By default, dashed lines indicate negative associations and solid lines represent positive associations. 
+
+Here's the relevance network for results using SELPCCA. We set the correlation cutoff to 0.58 for a less dense network.  
+
+```{r NetworkPlotSELP ,eval=T}
+networkPlot(mycvselpcca, cutoff=0.58)
+
+#The plot suggests that the protein Immunoglobulin lambda variable 3-1 (UID P01715) is highly positively correlated with many genes (including CDC6, CCNA2, UBE2C), and the protein Alpha-2-HS-glycoprotein (UID P02765) is highly negatively correlated with many genes (including CCNA2 and CDC6). 
+
+```
+
+
+# Loadings Plots
+We provide the function *LoadingsPlot()* to plot discriminant and canonical correlation vectors. These graphs are useful for visualizing how selected variables from SIDA/SIDANet and SELPCCA contribute to the first and second discriminant (for SIDA and SIDANet) or canonical correlation (for SELPCCA) vectors.  
+
+Variables farther from the origin and close to the first or second axis have higher impact on the first or second discriminant/canonical vectors, respectively. 
+
+Variables farther from the origin and between both first and second axes have similar higher contributions to the first and second discriminant/canonical correlation vectors. 
+
+In both situations, for SIDA and SIDANet, this suggests that these variables contribute more to the separation of classes and association of views. 
+
+For SELPCCA, this suggests that these variables contribute more to the association between the two views. This plot can only be generated for classification and association problems with 3 or more classes (SIDA and SIDANet),
+or for CCA problems with two or more canonical correlation vectors requested (i.e. ncancorr > 1 for SELPCCA).
+
+The angle between two vectors also give an indication of how the two variables are correlated. In particular, vectors that are close to each other suggests that the variables have high positive correlation. Vectors that are about 90 degrees indicate that the two variables are uncorrelated. Vectors that have an angle close to 180 degrees indicate that the two variables have negative correlation. 
+
+In order not to clutter the graph, we provide the option *keep.loadings* for the number of variables with highest absolute weights to show on the graph for each view. 
+
+
+Here's the loadings plot for results from SELPCCA
+In this example, we show the top 7 variables with largest absolute weights on the plot for view 1 and top 3 for view 2. 
+
+Protein ID A0A075B6H9 appears to be highly correlated with P02792. The gene UBE2C is loaded on the first canonical vector; genes UPK3A and GPR35 are loaded on the second canonical vector.
+
+```{r LoadingsPlot1, eval=T}
+
+LoadingsPlots(mycvselpcca,keep.loadings = c(7,3))
+
+#Protein ID A0A075B6H9 appears to be highly correlated with P02792. The gene UBE2C is loaded on the first canonical vector; genes UPK3A and GPR35 are loaded on the second canonical vector.
+
+```
+
+
+# Biplots
+
+Biplots are useful for representing both loadings plot and discriminant scores/canonical correlation variates.
+
+We provide the function *WithinViewBiplot()* to visualize the scores and loadings for each view separately.  The protein Immunoglobulin lambda 4-69 (UID A0A075B6H9) appears to be highly correlated with the protein Ferritin light chain (UID P02792) and Immunoglobulin lambda variable 3-1 (UID P01715).
+
+The gene UBE2C is loaded on the first CCA vector, and the genes UPK3A and GPR35 are loaded on the second CCA vector.
+
+The COVID-19 samples are well separated from the non-COVID-19 samples. 
+
+```{r Biplotswithin, eval=T}
+
+Y=Clinical.Train$DiseaseStatus.Indicator
+WithinViewBiplot(mycvselpcca,Y,Xtest=NULL,keep.loadings = c(7,3))
+
+```
+
+Now, instead of visualizing biplots separately for each view, we provide the function
+*BetweenViewBiplot()* to graph scores and loadings for pairs of views.
+
+In this graph, dashed red vectors represent loadings plot for the second view. 
+And solid black vectors represent loadings plot for the first view. 
+
+The scores are the sum of scores for the two views. 
+
+Here's an example Biplot for the COVID-19 application, where we show the top 7 variables for view 1 and the top 3 for view 2. 
+
+The protein  Immunoglobulin lambda variable 3-1 (UID P01715) appears to be positively correlated with the gene UBE2C. The protein P02792 appears to be negatively correlated with the genes UPK3A and GPR35.
+
+```{r Biplotbetween, eval=T}
+
+Y=Clinical.Train$DiseaseStatus.Indicator
+
+
+BetweenViewBiplot(mycvselpcca,Y,Xtest=NULL, keep.loadings = c(7,3))
+
+```
+
+SELP Predict Example with train and testing data using simulated data. 
+
+```{r SELPP, eval=T}
+#Load Data
+data("sidaData")
+Xdata <- sidaData[[1]]
+Xdata[[1]] <- Xdata[[1]][,1:500]
+Xdata[[2]] <- Xdata[[2]][,1:500]
+Y.simul <- sidaData[[2]]-1 #Y needs to be 0 or 1 for binomial family
+
+Xtestdata <- sidaData[[3]]
+Xtestdata[[1]] <- Xtestdata[[1]][,1:500]
+Xtestdata[[2]] <- Xtestdata[[2]][,1:500]
+Ytest.simul <- sidaData[[4]]-1
+
+fit.selp <- selpscca.pred(Xdata[[1]], Xdata[[2]], Y.simul,fitselpCCA=NULL,
+              family="binomial")
+
+pred.fit <- predict(fit.selp, newdata=Xtestdata[[1]],
+                    newdata2=Xtestdata[[2]], type = "response")
+
+summary(pred.fit$pred.mod)
+
+#Performance metrics
+Y.pred=round(pred.fit$pred.mod)
+test.metrics=PerformanceMetrics(Y.pred,Ytest.simul,family='binomial',isPlot=TRUE)
+
+
+```

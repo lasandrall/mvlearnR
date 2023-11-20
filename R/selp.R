@@ -593,10 +593,8 @@ cvtunerange=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure=
 
 #' @title Sparse canonical correlation vectors for fixed tuning parameters
 #'
-#' @description Performs n-fold cross validation to select optimal
-#' tuning parameters for SELPCCA based on training data. If you want
-#' to apply optimal tuning parameters to testing data, you may also
-#' use multiplescca.
+#' @description Function for estimating canonical correlation vectors for
+#' a fixed tuning parameters for each dataset.
 #'
 #' @param Xdata1 A matrix of size \eqn{n \times p} for first dataset.
 #' Rows are samples and columns are variables.

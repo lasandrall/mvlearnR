@@ -191,12 +191,14 @@ filter.supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH
                      Pval = NULL,
                      Keep = NULL,
                      View = NULL)
+  t1=list()
   for(i in 1:length(X)){
-    t1 <- data.frame(Coef = coef.mat[[i]],
-                     Pval = pval.mat[[i]],
-                     Keep = red.mat[[i]],
-                     View = i)
-    temp <- rbind(temp,t1)
+
+    t1[[i]] <- data.frame(Coef = coef.mat[[i]],
+                          Pval = pval.mat[[i]],
+                          Keep = red.mat[[i]],
+                          View = i)
+    temp <- rbind(temp,t1[[i]])
 
 
     # if(method=="t.test"){
@@ -230,6 +232,7 @@ filter.supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH
                  Xtest=Xtest.red,
                  method=method,
                  pval.mat=temp,
+                 pval.matlist=t1,
                  significant.thresh=thresh,
                  padjust=padjust,
                  adjmethod=adjmethod,
@@ -284,8 +287,8 @@ filter.supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH
 
 #############################################################################################################
 # Authors:
-#   Elise Palzer, Unviersity of Minnesota
-#   Sandra E. Safo, Unviersity of Minnesota
+#   Elise Palzer, University of Minnesota
+#   Sandra E. Safo, University of Minnesota
 # created: 2023
 #
 # Copyright (C) 2023
@@ -535,12 +538,20 @@ volcanoPlot <- function(object){
   myplot=list()
   for(i in 1:length(object$X)){
     mydata2=mydatad[mydatad$View==i,]
-    mydata=cbind.data.frame(mydata2$Coef,mydata2$Pval,mydata2$Keep)
-    colnames(mydata)=c("myCoeff","Pval", "Significance")
-
-    print(ggplot2::ggplot(mydata, aes(myCoeff, -log10(Pval))) +
+    mydata=cbind.data.frame(mydata2$Coef,mydata2$Pval,mydata2$Keep, sub("\\;.*", "", rownames(mydata2)))
+    colnames(mydata)=c("myCoeff","Pval", "Significance", "VarNames")
+    mydata=mydata[order(mydata[,2], mydata[,1]),] #order by p-value and coeff
+    mydata3=mydata[mydata$Significance==TRUE,]
+    mydata3=mydata3[order(mydata3[,1], mydata3[,2]),] #order by  coeff and pvalue
+    nrows=dim(mydata3)[1]
+    mylist=mydata3[c(1:15,(nrows-14):nrows), 4]
+    #print(mylist)
+    #mylist=sub("\\;.*", "", mylist)
+    print(ggplot2::ggplot(mydata, aes(myCoeff, -log10(Pval),label=VarNames)) +
             geom_point(aes(color = Significance)) +
             geom_hline(yintercept=-log10(0.05), linetype="dashed", color="red")+
+            geom_text(data=subset(mydata, VarNames %in% mylist), check_overlap = TRUE, size=4,
+                      hjust=0, nudge_x = -0.25, fontface="bold")+
             xlab(
               if(method=="logistic"){
                 expression("Log Odds Ratio")

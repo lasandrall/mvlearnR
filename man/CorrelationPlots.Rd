@@ -8,6 +8,7 @@ CorrelationPlots(
   Xtestdata = Xtestdata,
   Ytest = Ytest,
   hatalpha = hatalpha,
+  method.used = "SIDA",
   color.palette = NULL
 )
 }
@@ -19,6 +20,9 @@ CorrelationPlots(
 \item{Ytest}{\eqn{ntest \times 1} vector of class membership.}
 
 \item{hatalpha}{A list of estimated sparse discriminant vectors for each view.}
+
+\item{method.used}{A character specifying the integration method used. These are used for appropriate labeling.
+Options are "SIDA" and "SELPCCA". Default is "SIDA"}
 
 \item{color.palette}{character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)}

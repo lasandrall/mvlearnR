@@ -125,11 +125,20 @@ hatalpha=myresult$selp.fit$hatalpha
 hatbeta=myresult$selp.fit$hatbeta
 predictionModel=summary(myresult$mod.fit)
 
-Ytest=sidaData[[4]]-1
+##Performance metrics
+##Train Performance Metrics
+newPredictions=predict(myresult, newdata=Xdata1, newdata2=Xdata2, type="response")
+Y.pred=round(newPredictions$pred.mod)
+Y.train=Y
+train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+print(train.metrics)
+
+##Test Performance Metrics
+Y.test=sidaData[[4]]-1
 newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2, type="response")
-summary(newPredictions$pred.mod)
-##Misclassification Rate
-trainerror= sum((round(newPredictions$pred.mod)-Ytest)^2)/length(Ytest)
+Y.pred=round(newPredictions$pred.mod)
+test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
+print(test.metrics)
 }
 \references{
 Sandra E. Safo, Jeongyoun Ahn, Yongho Jeon, and Sungkyu Jung (2018),

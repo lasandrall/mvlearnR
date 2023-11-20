@@ -93,11 +93,21 @@
 #' hatbeta=myresult$selp.fit$hatbeta
 #' predictionModel=summary(myresult$mod.fit)
 #'
-#' Ytest=sidaData[[4]]-1
-#' newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2, type="response")
-#' summary(newPredictions$pred.mod)
-#' ##Misclassification Rate
-#' trainerror= sum((round(newPredictions$pred.mod)-Ytest)^2)/length(Ytest)
+#'##Performance metrics
+#'##Train Performance Metrics
+#'newPredictions=predict(myresult, newdata=Xdata1, newdata2=Xdata2, type="response")
+#'Y.pred=round(newPredictions$pred.mod)
+#'Y.train=Y
+#'train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+#'print(train.metrics)
+#'
+#'##Test Performance Metrics
+#'Y.test=sidaData[[4]]-1
+#'newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2, type="response")
+#'Y.pred=round(newPredictions$pred.mod)
+#'test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
+#'print(test.metrics)
+
 
 selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
                           event=NULL,
@@ -244,13 +254,21 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #' hatbeta=myresult$selp.fit$hatbeta
 #' predictionModel=summary(myresult$mod.fit)
 #'
-#' newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2)
-#' Ytest=sidaData[[4]]-1
-#'newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2, type="response")
-#'summary(newPredictions$pred.mod)
-#'##Misclassification Rate
-#'trainerror= sum((round(newPredictions$pred.mod)-Ytest)^2)/length(Ytest)
+#'##Performance metrics
+#'##Train Performance Metrics
+#'newPredictions=predict(myresult, newdata=Xdata1, newdata2=Xdata2, type="response")
+#'Y.pred=round(newPredictions$pred.mod)
+#'Y.train=Y
+#'train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+#'print(train.metrics)
 #'
+#'##Test Performance Metrics
+#'Y.test=sidaData[[4]]-1
+#'newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2, type="response")
+#'Y.pred=round(newPredictions$pred.mod)
+#'test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
+#'print(test.metrics)
+
 predict.SELPCCA <- function(object, newdata, newdata2, type="response"){
   scoresX1=newdata %*% object$selp.fit$hatalpha
   scoresX2=newdata2 %*% object$selp.fit$hatbeta

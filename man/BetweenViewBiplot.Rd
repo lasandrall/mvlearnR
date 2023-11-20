@@ -4,7 +4,13 @@
 \alias{BetweenViewBiplot}
 \title{Biplots for Discriminant Scores or Canonical Correlation Variates between pairs of views}
 \usage{
-BetweenViewBiplot(object, Y, color.palette = NULL, keep.loadings = c(20, 30))
+BetweenViewBiplot(
+  object,
+  Y,
+  Xtest = NULL,
+  color.palette = NULL,
+  keep.loadings = c(20, 30)
+)
 }
 \arguments{
 \item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
@@ -19,14 +25,17 @@ to represent on loadings plot for each view. This is useful
 in situations where the number of variables selected is large, and could clutter the plot. If this number is more
 than the variables selected, it will be set to the maximum number of variables selected for each view.
 Default is plotting all selected variables.}
+
+\item{A}{list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.}
 }
 \value{
 \item{NULL}{}
 }
 \description{
-Biplots  to visualize discriminant scores/ canonical variates  and how
-selected variables contribute to the first and second discriminant (for SIDA and SIDANet)
-or canonical correlation (for SELPCCA) vectors.  Variables farther from the origin and close to first or second axis
+Biplots  to visualize discriminant scores/ canonical variates between pairs of views. It shows how
+selected variables from the first and second discriminant (for SIDA and SIDANet)
+or canonical correlation (for SELPCCA) vectors in a view is related to selected variables in another view.
+Variables farther from the origin and close to first or second axis
 have higher impact on first or second discriminant/canonical vectors, respectively.
 Variables farther from the origin and between both first and second axes have similar higher contributions to the
 first and second discriminant/canonical correlation vectors. In both situations, for SIDA and SIDANet, this suggests that
@@ -34,6 +43,9 @@ these variables contribute more to the separation of classes and association of 
 these variables contribute more to the association between the two views. This plot can
 only be generated for classification and association problems with 3 or more classes (SIDA and SIDANet),
 or for CCA problems with two or more canonical correlation vectors requested (i.e. ncancorr > 1 for SELPCCA).
+This plot shows the scores and loadings from pairs of views together. The scores are the
+sum of scores for each view. Solid and dashed lines represent vectors for Views 1 and 2,
+respectively.
 }
 \details{
 The function will return loading plots, one for each view.

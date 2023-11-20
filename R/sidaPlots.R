@@ -9,6 +9,8 @@
 #'  and columns are variables. Can use testing or training data
 #' @param Ytest \eqn{ntest \times 1} vector of class membership.
 #' @param hatalpha A list of estimated sparse discriminant vectors for each view.
+#' @param method.used A character specifying the integration method used. These are used for appropriate labeling.
+#' Options are "SIDA" and "SELPCCA". Default is "SIDA"
 #' @param color.palette  character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 #' Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)
 #'
@@ -56,7 +58,7 @@
 #' #---------Correlation plot
 #' mycorrplot=CorrelationPlots(Xtestdata,Ytest,mysida$hatalpha)
 #'
-CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,color.palette=NULL){
+CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,method.used="SIDA",color.palette=NULL){
 
   if(is.null(color.palette)){
     color.palette=color.BlueOrange(length(unique(Ytest)))
@@ -103,9 +105,25 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,colo
     print(
     ggplot2::ggplot(Scores, aes(Scores[,1], Scores[,2])) +
       geom_point(aes(shape=Classes,colour = Classes),size=4) +
-      xlab(paste(
-        "First Discriminant Score for View", dd[1])) +
-      ylab(paste("First Discriminant Score for View", dd[2])) +
+      xlab(
+        if(method.used=="SIDA"){
+          paste(
+            "First Discriminant Score for View ", dd[1])
+        }else if(method.used=="SELPCCA"){
+          paste("First Canonical Variate for View ",dd[1])
+        }
+      )+
+      ylab(
+        if(method.used=="SIDA"){
+          paste(
+            "First Discriminant Score for View ", dd[2])
+        }else if(method.used=="SELPCCA"){
+          paste("First Canonical Variate for View ",dd[2])
+        }
+      )+
+      # xlab(paste(
+      #   "First Discriminant Score for View", dd[1])) +
+      # ylab(paste("First Discriminant Score for View", dd[2])) +
       ggtitle(paste("Correlation plot for views",dd[1], "and" ,dd[2],",", "\u03C1 =", RVCoeff)) +
       scale_colour_manual(values=color.palette) +
       scale_fill_manual(values = color.palette) +
@@ -129,13 +147,17 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,colo
 
 #' @title Discriminant Plots
 #'
-#' @description Plots discriminant scores for visualizing class separation
+#' @description Plots discriminant scores (for SIDA) and canonical variates (for
+#' SELPCCA) for visualizing class separation
 #'
 #' @param Xtestdata A list with each entry containing views of size
 #' \eqn{ntest \times p_d}, where \eqn{d = 1, \dots, D}. Rows are samples and
 #' columns are variables. Can use testing or training data.
 #' @param Ytest \eqn{ntest \times 1} vector of class membership.
 #' @param hatalpha A list of estimated sparse discriminant vectors for each view.
+#' @param method.used A character specifying the integration method used. These are used for appropriate labeling.
+#' Options are "SIDA" and "SELPCCA". Default is "SIDA". For SELPCCA, ncancorr \eqn{\ge 2}. If ncancorr \eqn{> 2},
+#' plot will be generated for the first two canonical variates.
 #' @param color.palette  character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 #' Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)
 #' @details The function will return discriminant plots.
@@ -183,8 +205,7 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,colo
 #' #---------Discriminant plot
 #' mydisplot=DiscriminantPlots(Xtestdata,Ytest,mysida$hatalpha)
 #'
-DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,color.palette=NULL){
-
+DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,method.used="SIDA",color.palette=NULL){
 
 
   dsizes=lapply(Xtestdata, function(x) dim(x))
@@ -196,21 +217,41 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,col
     color.palette=color.BlueOrange(2)
     }
     #graphics::par(mfrow=c(1,D))
-    for(d in 1:D){
-      myScores=Xtestdata[[d]]%*%hatalpha[[d]]
-      ss21=myScores[Ytest==nc[1],]
-      ss22=myScores[Ytest==nc[2],]
-      dd1=stats::density(ss21);
-      dd2=stats::density(ss22);
-      plot(dd1,xlim=c(min(myScores[,1]-0.7),max(myScores[,1]+0.7)),col=color.palette[1],cex.axis=1.5,
-           cex.lab=1.5,lwd=2.5,xlab="First Discriminant Score ",main=paste("Discriminant Plot for View",d),ylim=c(0,max(dd1$y,dd2$y)))
-      graphics::lines(dd2,xlim=c(min(myScores[,1]-0.7),max(myScores[,1]+0.7)),col=color.palette[2],cex.axis=1,cex.lab=1,lwd=2.5)
-      graphics::points(cbind(ss21,rep(0,length(ss21))),col=color.palette[1],pch=3,cex=4)
-      graphics::points(cbind(ss22,rep(0,length(ss22))),col=color.palette[2],pch=1,cex=4)
-      #legend("topleft", legend = c(paste("Class", nc[1]),paste("Class", nc[2])), col = c("red","black"),cex=1.2,lty=1,lwd=2.5)
-      graphics::legend("topleft", inset=c(0,0),legend=c(nc), col = color.palette,pch=c(3,1),title="Class")
-
-    }
+        for(d in 1:D){
+          # myScores=Xtestdata[[d]]%*%hatalpha[[d]]
+          # ss21=myScores[Ytest==nc[1],]
+          # ss22=myScores[Ytest==nc[2],]
+          # dd1=stats::density(ss21);
+          # dd2=stats::density(ss22);
+          if(method.used=="SIDA"){
+            myScores=Xtestdata[[d]]%*%hatalpha[[d]]
+            ss21=myScores[Ytest==nc[1],]
+            ss22=myScores[Ytest==nc[2],]
+            dd1=stats::density(ss21);
+            dd2=stats::density(ss22);
+              plot(dd1,xlim=c(min(myScores[,1]-0.7),max(myScores[,1]+0.7)),col=color.palette[1],cex.axis=1.5,
+                   cex.lab=1.5,lwd=2.5,
+                   xlab="First Discriminant Score ",
+                   main=paste("Discriminant Plot for View",d),
+                   ylim=c(0,max(dd1$y,dd2$y)))
+          }else if(method.used=="SELPCCA"){
+            myScores=Xtestdata[[d]]%*%as.data.frame(hatalpha[[d]])[,1]
+            ss21=myScores[Ytest==nc[1],]
+            ss22=myScores[Ytest==nc[2],]
+            dd1=stats::density(ss21);
+            dd2=stats::density(ss22);
+            plot(dd1,xlim=c(min(myScores[,1]-0.7),max(myScores[,1]+0.7)),col=color.palette[1],cex.axis=1.5,
+                 cex.lab=1.5,lwd=2.5,
+                 xlab="First Canonical Variate ",
+                 main=paste("Discriminant Plot for View",d),
+                 ylim=c(0,max(dd1$y,dd2$y)))
+          }
+          graphics::lines(dd2,xlim=c(min(myScores[,1]-0.7),max(myScores[,1]+0.7)),col=color.palette[2],cex.axis=1,cex.lab=1,lwd=2.5)
+          graphics::points(cbind(ss21,rep(0,length(ss21))),col=color.palette[1],pch=3,cex=4)
+          graphics::points(cbind(ss22,rep(0,length(ss22))),col=color.palette[2],pch=1,cex=4)
+          #legend("topleft", legend = c(paste("Class", nc[1]),paste("Class", nc[2])), col = c("red","black"),cex=1.2,lty=1,lwd=2.5)
+          graphics::legend("topleft", inset=c(0,0),legend=c(nc), col = color.palette,pch=c(3,1),title="Class")
+  }
     #graphics::par(mfrow=c(1,1))
   }else if(length(unique(Ytest))>2){
     # graphics::par(mfrow=c(1,D))
@@ -226,30 +267,59 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,col
       color.palette=color.BlueOrange(length(unique(Ytest)))
     }
     Classes=factor(Ytest)
-    for(d in 1:D){
-      #Scores=cbind.data.frame(Ytest,Xtestdata[[d]]%*%cbind(hatalpha[[d]],hatalpha[[d]]))
-      Scores=cbind.data.frame(Ytest,Xtestdata[[d]]%*%hatalpha[[d]])
-      # plot(Scores[,2], Scores[,3],col=mycol,lwd=2.5,pch=mypch,
-      #      xlab=paste(
-      #        "First Discriminant Score for View", d),
-      #      ylab=paste("Second Discriminant Score for View", d),
-      #      xaxt="n",
-      #      yaxt="n",
-      #      main=paste("Discriminant Plot for View",d),
-      #      cex.lab=1.5,cex.axis=1.5,cex.main=1.5,cex.sub=1.5)
-      # graphics::par(xpd=TRUE)
-      # graphics::legend("topright",bty = "n",legend=c(nc),col = 1:max(nc), pch=1:max(nc),title="Class")
+
+    if(method.used=="SIDA"){
+      for(d in 1:D){
+        #Scores=cbind.data.frame(Ytest,Xtestdata[[d]]%*%cbind(hatalpha[[d]],hatalpha[[d]]))
+        Scores=cbind.data.frame(Ytest,Xtestdata[[d]]%*%hatalpha[[d]])
+        # plot(Scores[,2], Scores[,3],col=mycol,lwd=2.5,pch=mypch,
+        #      xlab=paste(
+        #        "First Discriminant Score for View", d),
+        #      ylab=paste("Second Discriminant Score for View", d),
+        #      xaxt="n",
+        #      yaxt="n",
+        #      main=paste("Discriminant Plot for View",d),
+        #      cex.lab=1.5,cex.axis=1.5,cex.main=1.5,cex.sub=1.5)
+        # graphics::par(xpd=TRUE)
+        # graphics::legend("topright",bty = "n",legend=c(nc),col = 1:max(nc), pch=1:max(nc),title="Class")
 
 
 
 
-      #dev.new()
+        #dev.new()
+        print(
+          ggplot2::ggplot(Scores[,-1], aes(Scores[,2], Scores[,3])) +
+            geom_point(aes(shape=Classes,colour = Classes),size=4) +
+            xlab(paste(
+              "First Discriminant Score for View", d)) +
+            ylab(paste("Second Discriminant Score for View", d)) +
+            ggtitle(paste("Discriminant Plot for View",d)) +
+            scale_colour_manual(values=color.palette) +
+            scale_fill_manual(values = color.palette) +
+            theme_bw() +
+            stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),type = "norm", geom = "polygon", alpha = 0.1)+
+            guides(colour = guide_legend(override.aes = list(size=5))) +
+            scale_size_continuous(range=c(10,15))+
+            theme_bw() +
+            theme(axis.title = element_text(face="bold"))+
+            theme(axis.text = element_blank())+
+            theme(axis.ticks.x = element_blank())+
+            theme(axis.ticks.y=element_blank())+
+            theme(axis.ticks = element_blank())
+        )
+        Sys.sleep(2)
+      }
+    }else if(method.used=="SELPCCA"){
+      for(d in 1:D){
+
+      Scores=cbind.data.frame(Ytest,Xtestdata[[d]]%*%as.data.frame(hatalpha[[d]])[,1],
+                              Xtestdata[[d]]%*%as.data.frame(hatalpha[[d]])[,2])
       print(
         ggplot2::ggplot(Scores[,-1], aes(Scores[,2], Scores[,3])) +
           geom_point(aes(shape=Classes,colour = Classes),size=4) +
           xlab(paste(
-            "First Discriminant Score for View", d)) +
-          ylab(paste("Second Discriminant Score for View", d)) +
+            "First Canonical Variate for View", d)) +
+          ylab(paste("Second Canonical Variate for View", d)) +
           ggtitle(paste("Discriminant Plot for View",d)) +
           scale_colour_manual(values=color.palette) +
           scale_fill_manual(values = color.palette) +
@@ -263,10 +333,13 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,col
           theme(axis.ticks.x = element_blank())+
           theme(axis.ticks.y=element_blank())+
           theme(axis.ticks = element_blank())
-        )
+      )
       Sys.sleep(2)
-
+      }
     }
+
+
+
     #graphics::par(mfrow=c(1,1))
   }
 
@@ -461,6 +534,7 @@ LoadingsPlots=function(object,color.line="darkgray",keep.loadings=NULL){
 #'
 #' @param object the output from SIDA, SIDANet, and SELPCCA methods
 #' @param Y a vector of class membership for grouping canonical correlatoin variates and discriminant scores.
+#' @param A list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.
 #' @param color.palette  character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 #' Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)
 #' @param keep.loadings numeric vector of length D (number of views), specifying how many variables
@@ -501,7 +575,8 @@ LoadingsPlots=function(object,color.line="darkgray",keep.loadings=NULL){
 #'                      Ytest=Ytest)
 #'WithinViewBiplot(mycvsidanet,Y, color.palette=NULL,keep.loadings=c(3,3))
 
-WithinViewBiplot=function(object,Y, color.palette=NULL,keep.loadings=NULL){
+WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,keep.loadings=NULL){
+
   if(class(object)=="SIDA" | class(object)=="SIDANet"){
     hatalpha=object$hatalpha
   }else if( class(object)=="SELPCCA"){
@@ -586,7 +661,19 @@ WithinViewBiplot=function(object,Y, color.palette=NULL,keep.loadings=NULL){
     #var.names=sub("\\;.*", "", colnames(X1[,X1var.Ind]))
 
     #Scores=cbind.data.frame(Y,as.matrix(X1[,X1var.Ind])%*%hatalpha[[jj]][X1var.Ind,]) #selected variables
-    Scores=cbind.data.frame(Y,as.matrix(X1)%*%hatalpha[[jj]])
+    if(is.null(Xtest)){
+      if(length(Y)!=dim(X1)[1]){
+        stop('size of Y must be the same as X')
+      }
+      Scores=cbind.data.frame(Y,as.matrix(X1)%*%hatalpha[[jj]])
+    }else if(!is.null(Xtest)){
+        if(length(Y)==dim(Xtest[[jj]])[1]){
+          X1=Xtest[[jj]]
+        }
+        Scores=cbind.data.frame(Y,as.matrix(X1)%*%hatalpha[[jj]])
+    }
+
+
     if(keep.loadings[[jj]]==1){
       myloadings=as.data.frame(t(myloadings))
     }else{
@@ -608,9 +695,25 @@ WithinViewBiplot=function(object,Y, color.palette=NULL,keep.loadings=NULL){
                   size = 3.5, hjust = "outward", vjust = "outward") +
         scale_colour_manual(values=color.palette) +
         scale_fill_manual(values = color.palette) +
-        xlab(paste(
-          "First Discriminant Score for View ", jj)) +
-        ylab(paste("Second Discriminant Score for View ", jj)) +
+        xlab(
+          if(class(object)=="SIDA" | class(object)=="SIDANet"){
+            paste(
+              "First Discriminant Score for View ", jj)
+          }else if(class(object)=="SELPCCA"){
+            paste("First Canonical Variate for View ",jj)
+          }
+          # paste(
+          # "First Discriminant Score for View ", jj)
+          ) +
+        ylab(
+          if(class(object)=="SIDA" | class(object)=="SIDANet"){
+            paste(
+              "Second Discriminant Score for View ", jj)
+          }else if(class(object)=="SELPCCA"){
+            paste("Second Canonical Variate for View ",jj)
+          }
+          #paste("Second Discriminant Score for View ", jj)
+          ) +
         ggtitle(
           if(class(object)=="SIDA" | class(object)=="SIDANet"){
             paste("SIDA Biplot for View ",jj)
@@ -637,9 +740,10 @@ WithinViewBiplot=function(object,Y, color.palette=NULL,keep.loadings=NULL){
 
 #' @title Biplots for Discriminant Scores or Canonical Correlation Variates between pairs of views
 #'
-#' @description Biplots  to visualize discriminant scores/ canonical variates  and how
-#' selected variables contribute to the first and second discriminant (for SIDA and SIDANet)
-#' or canonical correlation (for SELPCCA) vectors.  Variables farther from the origin and close to first or second axis
+#' @description Biplots  to visualize discriminant scores/ canonical variates between pairs of views. It shows how
+#' selected variables from the first and second discriminant (for SIDA and SIDANet)
+#' or canonical correlation (for SELPCCA) vectors in a view is related to selected variables in another view.
+#' Variables farther from the origin and close to first or second axis
 #' have higher impact on first or second discriminant/canonical vectors, respectively.
 #' Variables farther from the origin and between both first and second axes have similar higher contributions to the
 #' first and second discriminant/canonical correlation vectors. In both situations, for SIDA and SIDANet, this suggests that
@@ -647,9 +751,13 @@ WithinViewBiplot=function(object,Y, color.palette=NULL,keep.loadings=NULL){
 #' these variables contribute more to the association between the two views. This plot can
 #' only be generated for classification and association problems with 3 or more classes (SIDA and SIDANet),
 #' or for CCA problems with two or more canonical correlation vectors requested (i.e. ncancorr > 1 for SELPCCA).
+#' This plot shows the scores and loadings from pairs of views together. The scores are the
+#' sum of scores for each view. Solid and dashed lines represent vectors for Views 1 and 2,
+#' respectively.
 #'
 #' @param object the output from SIDA, SIDANet, and SELPCCA methods
 #' @param Y a vector of class membership for grouping canonical correlatoin variates and discriminant scores.
+#' @param A list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.
 #' @param color.palette  character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 #' Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)
 #' @param keep.loadings numeric vector of length D (number of views), specifying how many variables
@@ -690,7 +798,7 @@ WithinViewBiplot=function(object,Y, color.palette=NULL,keep.loadings=NULL){
 #'                      Ytest=Ytest)
 #'BetweenViewBiplot(mycvsidanet, Y,keep.loadings=c(3,3) )
 
-BetweenViewBiplot=function(object,Y, color.palette=NULL,keep.loadings=c(20,30)){
+BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings=c(20,30)){
   if(class(object)=="SIDA" | class(object)=="SIDANet"){
     hatalpha=object$hatalpha
   }else if( class(object)=="SELPCCA"){
@@ -733,6 +841,24 @@ BetweenViewBiplot=function(object,Y, color.palette=NULL,keep.loadings=c(20,30)){
 
     X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
     X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
+
+    if(is.null(Xtest)){
+      if(length(Y)!=dim(X1)[1]){
+        stop('size of Y must be the same as X')
+      }
+      X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
+      X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
+    }else if(!is.null(Xtest)){
+      if(length(Y)==dim(Xtest[[jj]])[1]){
+        X1=as.data.frame(Xtest[[mycomb[1,jj]]])
+        X2=as.data.frame(Xtest[[mycomb[2,jj]]])
+      }else{
+        X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
+        X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
+      }
+    }
+
+
 
     if(ncomp == 1){
       if(class(object)=="SIDA" | class(object)=="SIDANet"){
@@ -827,9 +953,26 @@ BetweenViewBiplot=function(object,Y, color.palette=NULL,keep.loadings=c(20,30)){
         scale_fill_manual(values = color.palette) +
         # scale_linetype_manual("view1", values=c("view1"=2))+
         # scale_linetype_manual("view2", values=c("view1"=1))+
-        xlab(paste(
-          "First Discriminant Score")) +
-        ylab(paste("Second Discriminant Score")) +
+        # xlab(paste(
+        #   "First Discriminant Score")) +
+        # ylab(paste("Second Discriminant Score")) +
+        xlab(
+          if(class(object)=="SIDA" | class(object)=="SIDANet"){
+            paste(
+              "First Discriminant Score")
+          }else if(class(object)=="SELPCCA"){
+            paste("First Canonical Variate")
+          }
+        ) +
+        ylab(
+          if(class(object)=="SIDA" | class(object)=="SIDANet"){
+            paste(
+              "Second Discriminant Score")
+          }else if(class(object)=="SELPCCA"){
+            paste("Second Canonical Variate")
+          }
+          #paste("Second Discriminant Score for View ", jj)
+        ) +
         ggtitle(
           if(class(object)=="SIDA" | class(object)=="SIDANet"){
             paste("SIDA Biplot for Views ",mycomb[1,jj], "and", mycomb[2,jj])

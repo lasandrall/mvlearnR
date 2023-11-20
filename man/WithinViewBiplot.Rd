@@ -4,7 +4,13 @@
 \alias{WithinViewBiplot}
 \title{Biplots for Discriminant Scores or Canonical Correlation Variates for each View}
 \usage{
-WithinViewBiplot(object, Y, color.palette = NULL, keep.loadings = NULL)
+WithinViewBiplot(
+  object,
+  Y,
+  Xtest = NULL,
+  color.palette = NULL,
+  keep.loadings = NULL
+)
 }
 \arguments{
 \item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
@@ -19,6 +25,8 @@ to represent on loadings plot for each view. This is useful
 in situations where the number of variables selected is large, and could clutter the plot. If this number is more
 than the variables selected, it will be set to the maximum number of variables selected for each view.
 Default is plotting all selected variables.}
+
+\item{A}{list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.}
 }
 \value{
 \item{NULL}{}

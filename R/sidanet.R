@@ -315,8 +315,10 @@ sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=T
 #' \item{sidacorrelation}{Sum of pairwise RV coefficients. Normalized to be within 0
 #' and 1, inclusive.}
 #' \item{hatalpha}{A list of estimated sparse discriminant vectors for each view.}
-#' \item{PredictedClass}{Predicted class. If AssignClassMethod=’Separate’, this will
+#' \item{PredictedClass}{Predicted class for test data. If AssignClassMethod=’Separate’, this will
 #' be a \eqn{ntest \times D} matrix, with each column the predicted class for each data.}
+#' \item{PredictedClass.train}{Predicted class for train data. If AssignClassMethod=’Separate’, this will
+#' be a \eqn{ntrain \times D} matrix, with each column the predicted class for each data.}
 #' \item{optTau}{Optimal tuning parameters for each view, not including covariates,
 #' if available.}
 #' \item{gridValues}{Grid values used for searching optimal tuning paramters.}
@@ -684,6 +686,7 @@ cvSIDANet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,wit
 
   result=list(CVOut=CVOut,sidaneterror=mysida$sidaneterror,sidanetcorrelation=sidanetcorrelation,sidaneterror.train=mysidaTrain$sidaneterror,sidanetcorrelation.train=sidanetcorrelation.train,
               hatalpha=mysida$hatalpha,PredictedClass=mysida$PredictedClass,
+              PredictedClass.train=mysidaTrain$PredictedClass,
               optTau=moptTau,gridValues=gridValues, AssignClassMethod=AssignClassMethod,
               gridMethod=gridMethod,
               InputData=XdataOrig)

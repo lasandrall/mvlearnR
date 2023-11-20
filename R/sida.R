@@ -69,7 +69,6 @@
 #' @importFrom graphics lines
 #' @importFrom Matrix Matrix
 #' @importFrom CVXR power
-#' @importFrom igraph spectrum decompose
 #'
 #' @export
 #' @examples
@@ -262,7 +261,7 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 
 
 
-#' @title Cross validation for Sparse Integrative Descriminant Analysis for Multi-View Data
+#' @title Cross validation for Sparse Integrative Discriminant Analysis for Multi-View Data
 #'
 #' @description Performs nfolds cross validation to select optimal tuning
 #' parameters for sida based on training data, which are then used with
@@ -316,6 +315,8 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 #'  \item{hatalpha}{A list of estimated sparse discriminant vectors for each view.}
 #'  \item{PredictedClass}{ Predicted class. If AssignClassMethod=’Separate’, this will be a
 #'  \eqn{ntest \times D} matrix, with each column the predicted class for each data.}
+#'  \item{PredictedClass.train}{Predicted class for train data. If AssignClassMethod=’Separate’, this will
+#'  \eqn{ntrain \times D} matrix, with each column the predicted class for each data.}
 #'  \item{optTau}{Optimal tuning parameters for each view, not including covariates, if available.}
 #'  \item{gridValues}{Grid values used for searching optimal tuning parameters.}
 #'  \item{AssignClassMethod}{Classification method used. Joint or Separate.}
@@ -356,6 +357,20 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 #' test.correlation=mycv$sidacorrelation
 #' optTau=mycv$optTau
 #' hatalpha=mycv$hatalpha
+#'
+#' #Obtain more performance metrics (applicable to two classes only)
+#'  #train metrics
+#'  Y.pred=mycv$PredictedClass.train-1 #to get this in 0 and 1
+#'  Y.train=Y-1 #to get this in 0 and 1
+#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+#'
+#'  print(train.metrics)
+#'  #obtain predicted class
+#'  Y.pred=mycv$PredictedClass-1 #to get this in 0 and 1
+#'  Ytest.in=Ytest-1 #to get this in 0 and 1
+#'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=TRUE)
+#'  print(test.metrics)
+
 cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
                 Xtestdata=NULL,Ytest=NULL,isParallel=TRUE,ncores=NULL,
                 gridMethod='RandomSearch',AssignClassMethod='Joint',
@@ -687,6 +702,7 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
   result=list(CVOut=CVOut,sidaerror=mysida$sidaerror,sidacorrelation=sidacorrelation,sidaerror.train=mysidaTrain$sidaerror,
               sidacorrelation.train=sidacorrelation.train,
               hatalpha=mysida$hatalpha,PredictedClass=mysida$PredictedClass,
+              PredictedClass.train=mysidaTrain$PredictedClass,
               optTau=moptTau,gridValues=gridValues, AssignClassMethod=AssignClassMethod,
               gridMethod=gridMethod,
               InputData=XdataOrig)
@@ -764,7 +780,20 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
 #' hatalpha=mysida$hatalpha
 #'
 #' predictedClass=mysida$PredictedClass
+#'#obtain more performance metrics (applicable to two classes)
 #'
+#'  #train metrics
+#'  Y.pred=mysida$PredictedClass.train-1 #to get this in 0 and 1
+#'  Y.train=Y-1 #to get this in 0 and 1
+#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+#'  print(train.metrics)
+#'
+#'  #obtain test predicted class
+#'  Y.pred=mysida$PredictedClass-1 #to get this in 0 and 1
+#'  Ytest.in=Ytest-1 #to get this in 0 and 1
+#'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=TRUE)
+#'  print(test.metrics)
+
 sidatunerange=function(Xdata,Y,ngrid=10,standardize=TRUE,
                        weight=0.5,withCov=TRUE){
 
@@ -846,7 +875,7 @@ sidatunerange=function(Xdata,Y,ngrid=10,standardize=TRUE,
 }
 
 
-#' @title Classification approach for SIDA
+#' @title Classification approach for SIDA and SIDANet
 #'
 #' @description Performs classification using nearest centroid on separate or
 #' combined estimated discriminant vectors, and predicts class membership.

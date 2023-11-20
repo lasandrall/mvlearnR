@@ -1,0 +1,366 @@
+---
+title: "SIDA and SIDANet"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{SIDA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+The package *mvlearnR* and accompanying Shiny App is intended for integrating data from multiple sources
+(e.g. genomics, proteomics, metabolomics). Most existing software packages for multiview learning are decentralized,
+making it difficult for users to perform comprehensive integrative analysis. The new package wraps statistical and machine learning methods and graphical tools, providing a convenient and easy data integration workflow. For users with limited programming language, we provide a Shiny Application to facilitate data integration. The methods have potential to offer
+deeper insights into complex disease mechanisms.
+
+# Installation
+The package can be downloaded from GitHub at (https://github.com/lasandrall/mvlearnR). To install the package, you need to have the R-package *devtools* installed. Then use the function *install_github()* to install the package.
+
+```{r prereq, eval=T}
+if(!"mvlearnR" %in% installed.packages()){
+    library(devtools)
+    devtools::install_github("lasandrall/mvlearnR")
+}
+library(mvlearnR)
+library(dplyr)
+# #library(devtools)
+# if (interactive()) {
+#   require("devtools", quietly = TRUE)
+#   # automatically attaches usethis
+# }
+# load_all()
+
+```
+
+# Data import and prefiltering 
+We provide real data pertaining to COVID-19 severity and status and several simulated data to demonstrate the use of the package. Simulated data for two views and a binary outcome could be read as *data(sidaData)*, *data(selpData)*. The COVID-19 data can be imported as *data(COVID)*. This is a list with 3 entries:  Proteomics, RNASeq, and Clinical data. 
+
+
+```{r IMPORTS, eval=T}
+#load data
+#load data
+data("COVIDData")
+
+#make omics data numeric
+Proteomics= apply(as.matrix(COVIDData[[1]]), 2, as.numeric)
+RNASeq= apply(as.matrix(COVIDData[[2]]), 2, as.numeric)
+Clinical= COVIDData[[3]]
+
+table(Clinical$DiseaseStatus)
+
+
+set.seed(1234)
+stratified <- Clinical %>%
+  group_by(DiseaseStatus) %>%
+  sample_frac(size = .9)
+
+#train data
+Proteomics2=cbind.data.frame(Clinical[,1], Proteomics)
+Proteomics.Train=Proteomics2[Proteomics2[,1] %in% stratified$ID, ]
+Clinical.Train=Clinical[Clinical[,1] %in% stratified$ID, ]
+
+RNASeq2=cbind.data.frame(Clinical[,1], RNASeq)
+RNASeq.Train=RNASeq2[RNASeq2[,1] %in% stratified$ID, ]
+
+#test data
+set.diff=setdiff(Clinical[,1],stratified$ID)
+Proteomics.Test=Proteomics2[Proteomics2[,1] %in% set.diff, ]
+RNASeq.Test=RNASeq2[RNASeq2[,1] %in% set.diff, ]
+Clinical.Test=Clinical[Clinical[,1] %in% set.diff, ]
+
+#order data to ensure that the rows are the same
+Proteomics.Train=Proteomics.Train[order(Proteomics.Train[,1]),]
+Proteomics.Test=Proteomics.Test[order(Proteomics.Test[,1]),]
+
+RNASeq.Train=RNASeq.Train[order(RNASeq.Train[,1]),]
+RNASeq.Test=RNASeq.Test[order(RNASeq.Test[,1]),]
+
+Clinical.Train=Clinical.Train[order(Clinical.Train[,1]),]
+Clinical.Test=Clinical.Test[order(Clinical.Test[,1]),]
+
+```
+We provide functions to filter data either using supervised or unsupervised statistical methods. The function *filter.supervised()* can be used to filter each view using four methods: *linear*, *logistic*, *t-test*, and *Kruskal-Wallis (KW)* test. P-values can be adjusted for multiple hypothesis testing. The function *filter.unsupervised()* can be used to filter each view using unsupervised methods that include: *variance* and *interquartile range (IQR)* filtering. 
+
+Results from the supervised filtering approach could be visualized via volcano plots using the function *volcanoPlot()*. The filtered or original data could be visualized via UMAP with the function *umapPlot()*. 
+```{r FILTERING, eval=T}
+
+#Supervised filtering- Logistic regression with B-H adjusted pvalues
+X=list(Proteomics.Train[,-1], RNASeq.Train[,-1] )
+Xtest.in=list(Proteomics.Test[,-1], RNASeq.Test[,-1] ) #testing data will be subsetted to keep only variables that are significant in training set
+Y=Clinical.Train$DiseaseStatus.Indicator
+
+filterOmics=filter.supervised( X,
+          Y,
+          method = "logistic",
+          padjust=TRUE,
+          adjmethod="BH",
+          thresh = 0.05,
+          center = FALSE,
+          scale = FALSE,
+          log2TransForm = FALSE,
+          standardize=TRUE,
+          Xtest = Xtest.in
+                       )
+
+```
+
+# Supervised methods for associating data from two or more sources
+
+Sparse integrative discriminant analysis (SIDA) is an integrative analysis
+method for jointly modeling associations between two or more views. The algorithm considers the overall association between
+multiview data, and the separation within each view when choosing discriminant vectors that are associated and optimally separate subjects. Thus,this method combines the advantages of  linear discriminant analysis (LDA) for maximizing separation between classes in a view, and canonical correlation analysis (CCA) for maximizing correlation between two data types.
+
+In particular, SIDA maximizes the sum of between-class separations (e.g. COVID-19 versus non-COVID-19) and the sum of squared correlations between pairs of molecular data.  SIDA allows to  select key variables that contribute to the maximum association of the views and separation of the classes. The method SIDANet can be used when there are prior information in the form of variable-variable connectivity. 
+
+The function *cvSIDA()* performs nfold cross-validation to select optimal tuning parameters for SIDA based on training data, and  predicts training or testing class membership.  
+
+We demonstrate the  SIDA method on the data pertaining to COVID-19 data. Our goal is to associate the proteomics and RNASeq data and discriminate between COVID-status in a joint model. We further identify proteins and genes that maximize both association and discrimination.
+
+```{r SIDA, eval=T}
+
+#can use simulated data
+# data("sidaData")
+# Xdata <- sidaData[[1]]
+# Y <- sidaData[[2]]
+# Xtestdata <- sidaData[[3]]
+# Ytest <- sidaData[[4]]
+
+#We use the filtered data from above and obtain discriminant vectors that maximize association
+#between gene and protein data while discriminating between those with and without COVID-19.
+#We use cross-validation to choose variables
+Xdata1 <- filterOmics$X[[1]] #proteins
+Xdata2 <- filterOmics$X[[2]] #RNASeq
+Y=filterOmics$Y+1  # class membership needs to be numeric, coded as 1, 2, ....
+Xdata=list(Xdata1, Xdata2)
+
+Xtest1 <- filterOmics$Xtest[[1]] #proteomics
+Xtest2 <- filterOmics$Xtest[[2]] #RNASeq
+Xtest.in=list(Xtest1, Xtest2)
+Ytest.in=Clinical.Test$DiseaseStatus.Indicator
+
+
+#We apply the function cvSIDA() to obtain estimated SIDA discriminant vectors, correlation coefficients, and variables potentially contributing to the association of the views and the discrimination between samples within each view. 
+
+fit.cvsida <- cvSIDA(Xdata, Y,
+                     Xtestdata = Xtest.in,
+                     Ytest = Ytest.in+1, plotIt = F)
+
+
+#From implementing SIDA, we observed that 26 proteins and 23 genes have nonzero coefficients, which suggests that these proteins and genes maximize both correlation between the proteomics and RNASeq data (estimated correlation is 0.42) as well as separation between those with and without COVID-19. 
+
+
+```
+
+In terms of prediction, we obtain the train and test error upon running *cvSIDA*. We used the function *PerformanceMetrics()* to obtain more peformance metrics. 
+
+We observe that both train and test performance metrics are high, suggesting that SIDA discriminant scores are able to discriminate those with and without COVID-19. 
+
+The estimated train correlation is 0.41. Further, the performance metrics, especially test performance metrics, are better for SIDA than SELPCCA, which suggests that in this application, joint modeling of association and separation is better.  
+#Performance metrics
+```{r SIDAMetrics, eval=T}
+
+#train metrics
+Y.pred=fit.cvsida$PredictedClass.train-1 #to get this in 0 and 1
+Y.train=filterOmics$Y
+train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+print(train.metrics)
+
+
+#obtain predicted class
+Y.pred=fit.cvsida$PredictedClass-1 
+test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=TRUE)
+print(test.metrics)
+
+
+```
+
+# Visualizations in *mvlearnR* for SIDA and SIDANet
+
+
+# Variable Importance Plots
+We provide the function *VarImportancePlot()* to visualize the weights (in absolute value) of the low-dimensional loadings. Since these loadings are standardized to have unit norm, a variable with larger weight contributes more to the association between the views (for SELPCCA) or to the association between the views and discrimination of classes within each view (for SIDA and SIDANet). We only show the top 20 variables and their weights but one can view data matrix for all variables.
+
+
+Variable importance tables and plots from the supervised integrative analysis method, SIDA
+```{r VIMPSIDA, eval=T}
+
+VarImportancePlot(fit.cvsida)
+
+#The top 20 proteins (shown as Uniprot IDs, UID) and genes with highest absolute loadings are shown.  Some of the highly ranked proteins include:  (UID P04196),  (UID P14543), (UID E9PEK4). Some of the highly ranked genes include: (GOLGA8Q),  (ADGB), (TNFRSF6B), and  (SLC25A41). 
+
+#We note that some of the highly-ranked proteins (e.g. [UID E9PEK4] and  [P04196]) and genes (e.g. XX) each had high log-odds ratios for discriminating between COVID-19 cases and non-cases.  
+
+```
+
+
+# Discriminant Plots
+We provide the function *DiscriminantPlots()* to plot the discriminant vectors for visualizing class separation. 
+Here's an example plot with two classes.
+
+```{r DiscPlot, eval=T}
+
+#train data
+Xdata1 <- filterOmics$X[[1]]
+Xdata2 <- filterOmics$X[[2]]
+Y=filterOmics$Y  # class membership needs to be numeric, coded as 1, 2, ....
+Xdata=list(Xdata1, Xdata2)
+
+DiscriminantPlots(Xdata, Y, fit.cvsida$hatalpha) 
+
+#test data
+Xtest1 <- filterOmics$Xtest[[1]] #proteomics
+Xtest2 <- filterOmics$Xtest[[2]] #RNASeq
+Xtest.in=list(Xtest1, Xtest2)
+
+DiscriminantPlots(Xtest.in, Ytest.in, fit.cvsida$hatalpha) 
+
+#The classes are well-separated in both the training and testing set.
+
+```
+
+
+
+
+# Correlation Plots
+We also provide the function 
+*CorrelationPlots()* for visualizing correlations between estimated discriminant vectors.
+Here's an example graph with two classes and views moderately correlated. Correlation estimate is  given in absolute value. 
+
+```{r CorrPlots, eval=T}
+
+Xdata1 <- filterOmics$X[[1]]
+Xdata2 <- filterOmics$X[[2]]
+Y=filterOmics$Y
+Xdata=list(Xdata1, Xdata2)
+
+CorrelationPlots(Xdata, Ytest=Y, fit.cvsida$hatalpha)
+
+#We notice that the views are moderately correlated, and the classes are well-separated.
+
+```
+
+
+
+
+# Relevance Network Plot
+
+We provide the function *networkPlot()* to visualize associations of selected variables between pairs of views. We estimate pairwise similarity matrix using low-dimensional representations of our
+sparse integrative analysis methods (selpcca, sida, sidanet). We create bipartite graph (bigraph) where variables or nodes from one view are connected to variables or nodes from another view. We construct the bigraph from a pairwise similarity matrix obtained from the outputs of our integrative analysis methods.  We estimate the similarity score between a pair of selected variables from two views  by calculating the inner product of each selected variable and the sum of canonical variates (for SELPCCA) or discriminant vectors (for SIDA, SIDANet) for the pairs of views. The entries in the similarity matrix is a robust approximation of the Pearson correlation between pairs of variables and the two views under consideration. This network graph has potential to shed light on the complex associations between pairs of views.
+
+Variable pairs with high similarity score may be of interest. The relevance of the associations can be explored by changing the cutoff. This can also be used to reduce the size of the graph, for dense network. 
+
+By default, dashed lines indicate negative associations and solid lines represent positive associations. 
+
+
+Here's the relevance network for results using SIDA. We set the correlation cutoff to 0.1 for a less dense network. 
+
+The plot suggest that the gene FAM3D is negatively  correlated with many proteins (e.g. PO2766, P30491, Q08380), and positively correlated with proteins such as A0ADC4DFP6, E9PEK4, P04196, D6W5L6.  
+```{r NetworkPlotSIDA,fig.height = 2, fig.width = 2, fig.align = "center" ,eval=T}
+
+dev.off()
+networkPlot(fit.cvsida,cutoff=.1) 
+
+
+#The plot suggest that the gene FAM3D is negatively  correlated with many proteins (e.g. PO2766, P30491, Q08380), and positively correlated with proteins such as A0ADC4DFP6, E9PEK4, P04196, D6W5L6.  
+
+```
+Demonstration of *cvSIDANet()*
+
+The function *cvSIDANet()* incorporates prior structural information (e.g. gene-gene connectivity) in SIDA via the use of the normalized Laplacian of graph, thus encouraging selection of predictors that are connected and behave similarly.  
+
+Covariates, if available, can be included. We provide the option to select or force covariates in the models. To select covariates (or shrink weights of some covariates to zero), set *withCov = FALSE*. To force weights of covariates to not be shruck to zero, set *withCov = TRUE*. Unlike *cvselpscca()*, *cvSIDA()* or *cvSIDANet()* is applicable to two or more views. 
+
+We demonstrate the use of *cvSIDANet()* on simulated data. 
+```{r SIDANet, eval=T}
+data("sidanetData")
+Xdata <- sidanetData[[1]]
+Y <- sidanetData[[2]] #class membership already coded as 1,2,...
+Xtestdata <- sidanetData[[3]]
+Ytest <- sidanetData[[4]] #class membership already coded as 1,2,...
+
+#edge information
+myedges=sidanetData[[5]]
+myedgeweight=sidanetData[[6]]
+
+ ##---- call cross validation
+mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
+     Ytest=Ytest)
+
+
+```
+
+
+And here's an example plot with three classes
+```{r DiscPlot2, eval=T}
+
+Xdata <- sidanetData[[1]]
+Y <- sidanetData[[2]]
+
+DiscriminantPlots(Xdata, Y, mycvsidanet$hatalpha, method.used = "SIDA")
+
+```
+
+And here's an example correlation plot with three classes where the first canonical correlation is high, suggesting that the two views are highly associated.  
+```{r CorrPlot2, eval=T}
+
+Xdata <- sidanetData[[1]]
+Y <- sidanetData[[2]]
+
+CorrelationPlots(Xdata, Y, mycvsidanet$hatalpha, method.used = "SIDA")
+
+```
+
+# Loadings Plots
+We provide the function *LoadingsPlot()* to plot discriminant and canonical correlation vectors. These graphs are useful for visualizing how selected variables from SIDA/SIDANet contribute to the first and second discriminant. 
+
+Variables farther from the origin and close to the first or second axis have higher impact on the first or second discriminant/canonical vectors, respectively. 
+
+Variables farther from the origin and between both first and second axes have similar higher contributions to the first and second discriminant/canonical correlation vectors. 
+
+In both situations, for SIDA and SIDANet, this suggests that these variables contribute more to the separation of classes and association of views. This plot can only be generated for classification and association problems with 3 or more classes.
+
+The angle between two vectors also give an indication of how the two variables are correlated. In particular, vectors that are close to each other suggest that the variables have high positive correlation. Vectors that are about 90 degrees indicate that the two variables are uncorrelated. Vectors that have an angle close to 180 degrees indicate that the two variables have negative correlation. 
+
+In order not to clutter the graph, we provide the option *keep.loadings* for the number of variables with highest absolute weights to show on the graph for each view. 
+
+
+Here's the loadings plot for results from CVSIDANet
+In this example, we show the top 7 variables with largest absolute weights on the plot for view 1 and top 3 for view 2
+```{r LoadingsPlot1, eval=T}
+
+LoadingsPlots(mycvsidanet,keep.loadings=c(7,3))
+
+
+```
+# Biplots
+
+Biplots are useful for representing both loadings plot and discriminant scores/canonical correlation variates.
+
+We provide the function *WithinViewBiplot()* to visualize the scores and loadings for each view separately.
+
+```{r Biplotswithin, eval=T}
+
+WithinViewBiplot(mycvsidanet,Y,Xtest=NULL,keep.loadings = c(5,3))
+
+```
+
+
+Now, instead of visualizing biplots separately for each view, we provide the function
+*BetweenViewBiplot()* to graph scores and loadings for pairs of views.
+
+In this graph, dashed red vectors represent loadings plot for the second view. 
+And solid black vectors represent loadings plot for the first view. 
+
+The scores are the sum of scores for the two views. 
+
+Here's an example Biplot for the COVID-19 application, where we show the top 3 variables for view 1 and the top 3 for view 2. 
+
+
+
+```{r Biplotbetween, eval=T}
+
+BetweenViewBiplot(mycvsidanet,Y,Xtest=NULL, keep.loadings = c(3,3))
+
+```
+
+
