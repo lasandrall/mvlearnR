@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 ```
 
 
+
 The package *mvlearnR* and accompanying Shiny App is intended for integrating data from multiple sources
 (e.g. genomics, proteomics, metabolomics). Most existing software packages for multiview learning are decentralized,
 making it difficult for users to perform comprehensive integrative analysis. The new package wraps statistical and machine learning methods and graphical tools, providing a convenient and easy data integration workflow. For users with limited programming language, we provide a Shiny Application to facilitate data integration. The methods have potential to offer
@@ -28,8 +29,7 @@ if(!"mvlearnR" %in% installed.packages()){
     library(devtools)
     devtools::install_github("lasandrall/mvlearnR")
 }
-library(mvlearnR)
-library(dplyr)
+
 # #library(devtools)
 # if (interactive()) {
 #   require("devtools", quietly = TRUE)
@@ -39,11 +39,17 @@ library(dplyr)
 
 ```
 
+```{r setup}
+library(mvlearnR)
+```
+
+
 # Data import and prefiltering 
 We provide real data pertaining to COVID-19 severity and status and several simulated data to demonstrate the use of the package. Simulated data for two views and a binary outcome could be read as *data(sidaData)*, *data(selpData)*. The COVID-19 data can be imported as *data(COVID)*. This is a list with 3 entries:  Proteomics, RNASeq, and Clinical data. 
 
 
 ```{r IMPORTS, eval=T}
+library(dplyr)
 #load data
 #load data
 data("COVIDData")

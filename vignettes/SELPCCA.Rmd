@@ -1,8 +1,8 @@
 ---
-title: "SELPCCA and SELP Predict"
+title: "SELPCCA"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{SELPCCA and SELP Predict}
+  %\VignetteIndexEntry{SELPCCA}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,22 +12,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
-
-```{r prereq, eval=T}
-if(!"mvlearnR" %in% installed.packages()){
-    library(devtools)
-    devtools::install_github("lasandrall/mvlearnR")
-}
-library(mvlearnR)
-library(dplyr)
-
-# #library(devtools)
-# if (interactive()) {
-#   require("devtools", quietly = TRUE)
-#   # automatically attaches usethis
-# }
-# load_all()
 ```
 
 The package *mvlearnR* and accompanying Shiny App is intended for integrating data from multiple sources
@@ -42,9 +26,30 @@ The package can be downloaded from GitHub at (https://github.com/lasandrall/mvle
 # Data import and prefiltering 
 We provide real data pertaining to COVID-19 severity and status and several simulated data to demonstrate the use of the package. Simulated data for two views and a binary outcome could be read as *data(sidaData)*, *data(selpData)*. The COVID-19 data can be imported as *data(COVID)*. This is a list with 3 entries:  Proteomics, RNASeq, and Clinical data. 
 
+```{r prereq, eval=T}
+if(!"mvlearnR" %in% installed.packages()){
+    library(devtools)
+    devtools::install_github("lasandrall/mvlearnR")
+}
+
+
+# #library(devtools)
+# if (interactive()) {
+#   require("devtools", quietly = TRUE)
+#   # automatically attaches usethis
+# }
+# load_all()
+```
+
+
+```{r setup}
+library(mvlearnR)
+```
+
 
 ```{r IMPORTS, eval=T}
 #load data
+library(dplyr)
 data("COVIDData")
 
 #make omics data numeric
