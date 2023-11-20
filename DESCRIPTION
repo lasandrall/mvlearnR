@@ -26,6 +26,7 @@ Imports: stats, graphics, doParallel, parallel, CVXR, foreach, igraph,
         RSpectra, Matrix, ggplot2, ggpubr, umap,ggthemes,methods, ROCit
 Suggests: 
     knitr,
+    dplyr,
     rmarkdown,
     testthat (>= 3.0.0)
 Depends: R (>= 3.5.0)
