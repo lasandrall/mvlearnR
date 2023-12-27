@@ -78,14 +78,14 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,meth
 
   for(d in 1:dim(mycomb)[1]){
     dd=mycomb[d,]
-    Scoresd=Xtestdata[[dd[1]]]%*%hatalpha[[dd[1]]]
-    Scoresj=Xtestdata[[dd[2]]]%*%hatalpha[[dd[2]]]
+    Scoresd=scale(Xtestdata[[dd[1]]])%*%hatalpha[[dd[1]]]
+    Scoresj=scale(Xtestdata[[dd[2]]])%*%hatalpha[[dd[2]]]
     Scores=cbind.data.frame(Scoresd[,1], Scoresj[,1], Ytest)
     colnames(Scores)=c("Disc1", "Disc2", "Class")
 
     #calculate RV coefficient
-    X1=Xtestdata[[dd[1]]]%*%hatalpha[[dd[1]]]
-    X2=Xtestdata[[dd[2]]]%*%hatalpha[[dd[2]]]
+    X1=scale(Xtestdata[[dd[1]]])%*%hatalpha[[dd[1]]]
+    X2=scale(Xtestdata[[dd[2]]])%*%hatalpha[[dd[2]]]
     X1=scale(X1, center=TRUE,scale=FALSE)
     X2=scale(X2, center=TRUE,scale=FALSE)
     X1X2=t(X1)%*%X2/dim(X1)[1]
@@ -224,7 +224,7 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,met
           # dd1=stats::density(ss21);
           # dd2=stats::density(ss22);
           if(method.used=="SIDA"){
-            myScores=Xtestdata[[d]]%*%hatalpha[[d]]
+            myScores=scale(Xtestdata[[d]])%*%hatalpha[[d]]
             ss21=myScores[Ytest==nc[1],]
             ss22=myScores[Ytest==nc[2],]
             dd1=stats::density(ss21);
@@ -235,7 +235,7 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,met
                    main=paste("Discriminant Plot for View",d),
                    ylim=c(0,max(dd1$y,dd2$y)))
           }else if(method.used=="SELPCCA"){
-            myScores=Xtestdata[[d]]%*%as.data.frame(hatalpha[[d]])[,1]
+            myScores=scale(Xtestdata[[d]])%*%as.data.frame(hatalpha[[d]])[,1]
             ss21=myScores[Ytest==nc[1],]
             ss22=myScores[Ytest==nc[2],]
             dd1=stats::density(ss21);
@@ -271,7 +271,7 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,met
     if(method.used=="SIDA"){
       for(d in 1:D){
         #Scores=cbind.data.frame(Ytest,Xtestdata[[d]]%*%cbind(hatalpha[[d]],hatalpha[[d]]))
-        Scores=cbind.data.frame(Ytest,Xtestdata[[d]]%*%hatalpha[[d]])
+        Scores=cbind.data.frame(Ytest,scale(Xtestdata[[d]])%*%hatalpha[[d]])
         # plot(Scores[,2], Scores[,3],col=mycol,lwd=2.5,pch=mypch,
         #      xlab=paste(
         #        "First Discriminant Score for View", d),
@@ -312,8 +312,8 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,met
     }else if(method.used=="SELPCCA"){
       for(d in 1:D){
 
-      Scores=cbind.data.frame(Ytest,Xtestdata[[d]]%*%as.data.frame(hatalpha[[d]])[,1],
-                              Xtestdata[[d]]%*%as.data.frame(hatalpha[[d]])[,2])
+      Scores=cbind.data.frame(Ytest,scale(Xtestdata[[d]])%*%as.data.frame(hatalpha[[d]])[,1],
+                              scale(Xtestdata[[d]])%*%as.data.frame(hatalpha[[d]])[,2])
       print(
         ggplot2::ggplot(Scores[,-1], aes(Scores[,2], Scores[,3])) +
           geom_point(aes(shape=Classes,colour = Classes),size=4) +
@@ -619,7 +619,7 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,keep.loadings=
       if(class(object)=="SIDA" | class(object)=="SIDANet"){
         stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
       }else if(class(object)=="SELPCCA"){
-        stop("Loadings plot not applicable with one CCA vecto " , call. = FALSE)
+        stop("Loadings plot not applicable with one CCA vector" , call. = FALSE)
       }
     }else if (ncomp >1){
       hatalpha1=rowSums(abs(hatalpha[[jj]]))
@@ -665,12 +665,12 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,keep.loadings=
       if(length(Y)!=dim(X1)[1]){
         stop('size of Y must be the same as X')
       }
-      Scores=cbind.data.frame(Y,as.matrix(X1)%*%hatalpha[[jj]])
+      Scores=cbind.data.frame(Y,scale(as.matrix(X1))%*%hatalpha[[jj]])
     }else if(!is.null(Xtest)){
         if(length(Y)==dim(Xtest[[jj]])[1]){
           X1=Xtest[[jj]]
         }
-        Scores=cbind.data.frame(Y,as.matrix(X1)%*%hatalpha[[jj]])
+        Scores=cbind.data.frame(Y,scale(as.matrix(X1))%*%hatalpha[[jj]])
     }
 
 
@@ -728,7 +728,7 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,keep.loadings=
         geom_vline(xintercept = 0, color = "darkgrey") +
         geom_hline(yintercept = 0, color = "darkgrey") +
         ggthemes::theme_stata(scheme="s2manual")+
-        xlim(min(Scores[,2])-20,max(Scores[,2])+20)
+        xlim(min(Scores[,2])-10,max(Scores[,2])+10)
     )
     Sys.sleep(2)
 
@@ -916,8 +916,8 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
       var2.names <- paste(var2.names,mycomb[2,jj],sep="_")
     }
 
-    U=as.matrix(X1)%*%hatalpha[[mycomb[1,jj]]]
-    V=as.matrix(X2)%*%hatalpha[[mycomb[2,jj]]]
+    U=scale(as.matrix(X1))%*%hatalpha[[mycomb[1,jj]]]
+    V=scale(as.matrix(X2))%*%hatalpha[[mycomb[2,jj]]]
     Z=U+V
     Scores=cbind.data.frame(Y,Z)
 
@@ -929,8 +929,8 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
       myloadings[[2]]=as.data.frame(t(myloadings[[2]]))
     }
 
-    mxmax=max(abs(Scores[,2]))+35
-    mymax=max(abs(Scores[,3]))+35
+    mxmax=max(abs(Scores[,2]))+25
+    mymax=max(abs(Scores[,3]))+25
 
     print(
       ggplot2::ggplot() +
@@ -987,7 +987,8 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
         geom_vline(xintercept = 0, color = "darkgrey") +
         geom_hline(yintercept = 0, color = "darkgrey") +
         ggthemes::theme_stata(scheme="s2manual")+
-        xlim(min(Scores[,2])-20,max(Scores[,2])+20)
+       # xlim(min(Scores[,2])-15,max(Scores[,2])+15)
+      xlim(min(Scores[,2])-5,max(Scores[,2])+5)
     )
     Sys.sleep(2)
 
