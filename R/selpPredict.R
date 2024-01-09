@@ -136,6 +136,8 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
   if(model.separately==F){
     #Part 1: Create Data matrix
     selp.dat <- data.frame(Y=Y)
+    Xdata1=apply(as.matrix(Xdata1), 2, as.numeric)
+    Xdata2=apply(as.matrix(Xdata2), 2, as.numeric)
     scoresX1=Xdata1%*% fit$hatalpha
     scoresX2=Xdata2%*% fit$hatbeta
     selp.dat <- cbind(selp.dat, scoresX1, scoresX2)
@@ -163,10 +165,12 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
     #Part 1: Create Data matrices
     selp.dat1 <- selp.dat2 <- data.frame(Y=Y)
     #matrix 1
+    Xdata1=apply(as.matrix(Xdata1), 2, as.numeric)
     scoresX1=Xdata1%*% fit$hatalpha
     selp.dat1 <- cbind(selp.dat1, scoresX1)
     names(selp.dat1) <- c("Y", paste0("X1_", 1:ncancorr))
     #matrix 2
+    Xdata2=apply(as.matrix(Xdata2), 2, as.numeric)
     scoresX2=Xdata2%*% fit$hatbeta
     selp.dat2 <- cbind(selp.dat2, scoresX2)
     names(selp.dat2) <- c("Y", paste0("X2_", 1:ncancorr))
@@ -270,6 +274,8 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #'print(test.metrics)
 
 predict.SELPCCA <- function(object, newdata, newdata2, type="response"){
+  newdata=apply(as.matrix(newdata), 2, as.numeric)
+  newdata2=apply(as.matrix(newdata2), 2, as.numeric)
   scoresX1=newdata %*% object$selp.fit$hatalpha
   scoresX2=newdata2 %*% object$selp.fit$hatbeta
 
