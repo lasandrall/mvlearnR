@@ -240,14 +240,16 @@ For a  continuous outcome, we provide the following metrics:
 "Mean Squared Error","Root Mean.Squared Error","Relative Squared Error",
 "Root Relative Squared.Error", "Root Absolute Error", "Mean Absolute Error".
 
-We provide an option to plot an ROC curve for a binary outcome, and a scatter plot of predicted and observed values, for a continuous outcome.
+We provide an option to plot an ROC curve for a binary outcome for SELPCCA, and a scatter plot of predicted and observed values, for a continuous outcome. For binary outcomes, set isPlot to FALSE for SIDA and SIDANet. If isPlot is TRUE and predictions are from SIDA and SIDANet, AUC estimate coincides with balanced accuracy.
 
 ```{r SELPPREDICTStatus3 ,echo=TRUE,message=FALSE,eval=T}
 
 
 ##Train Performance Metrics
 newpredictions=predict(myresult, newdata=Xdata1, newdata2=Xdata2) 
-Y.pred=round(newpredictions$pred.mod)
+
+Y.pred=newpredictions$pred.mod # Y.pred A vector of predicted values. For SELPCCA, this is a vector of
+#predicted probabilities. For SIDA and SIDANet, this is a vector of predicted class. 
 train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
 print(train.metrics)
 
@@ -256,8 +258,10 @@ print(train.metrics)
 Xtest1 <- filterOmics$Xtest[[1]] #proteomics
 Xtest2 <- filterOmics$Xtest[[2]] #RNASeq
 Y.test=Clinical.Test$DiseaseStatus.Indicator
+
 newpredictions=predict(myresult, newdata=Xtest1, newdata2=Xtest2) 
-Y.pred=round(newpredictions$pred.mod)
+
+Y.pred=newpredictions$pred.mod #predicted probabilities
 test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=FALSE)
 print(test.metrics)
 
