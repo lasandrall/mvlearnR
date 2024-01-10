@@ -111,7 +111,7 @@ predictedClass=mysida$PredictedClass
 
 }
 \references{
-Sandra E. Safo, Eun Jeong Min, and Lillian Haine (20229), Sparse Linear Discriminant
+Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022), Sparse Linear Discriminant
 Analysis for Multi-view Structured Data, Biometrics.
 }
 \seealso{
