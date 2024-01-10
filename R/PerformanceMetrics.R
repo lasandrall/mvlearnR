@@ -6,12 +6,16 @@
   #'  for binary and continuous outcomes
   #'
   #'
-  #' @param Y.pred A vector of predicted values coded as 0 and 1.
-  #' @param Y.test A vector of test values coded as 0 and 1.
+  #' @param Y.pred A vector of predicted values. For SELPCCA, this is a vector of
+  #'              predicted probabilities. For SIDA and SIDANet, this is a vector of predicted class.
+  #' @param Y.test A vector of observed test values.
   #' @param family A string to denote the family for which  metrics should be provided.
   #'        Options are "gaussian", "binomial".
   #' @param isPlot Boolean on whether or not to generate a plot. If family is binomial,
-  #'        an AUC plot is generated. If family is gaussian, a scatter plot of observed vs
+  #'        an AUC plot is generated. Currently applicable to SELPCCA. Set isPlot to FALSE
+  #'        for SIDA and SIDANet. If isPlot is TRUE and predictions
+  #'        are from SIDA and SIDANet, AUC estimate coincides with balanced accuracy.
+  #'        If family is gaussian, a scatter plot of observed vs
   #'        predicted is generate.
   #' @details For a binary outcome, we provide the following metrics:
   #'          "Accuracy","Error rate","Sensitivity", "Specificity", "Matthews Correlation Coefficient (MCC)",
@@ -51,13 +55,13 @@
 #'  #train metrics
 #'  Y.pred=mycv$PredictedClass.train-1 #to get this in 0 and 1
 #'  Y.train=Y-1 #to get this in 0 and 1
-#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
 #'
 #'  print(train.metrics)
 #'  #obtain predicted class
 #'  Y.pred=mycv$PredictedClass-1 #to get this in 0 and 1
 #'  Ytest.in=Ytest-1 #to get this in 0 and 1
-#'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=TRUE)
+#'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=FALSE)
 #'  print(test.metrics)
 
 
@@ -86,10 +90,12 @@
 
 PerformanceMetrics = function(Y.pred, Y.test, family='binomial',isPlot=TRUE){
    if (family=='binomial'){
-        TP=sum(Y.pred[Y.test==1]==1)
-        TN=sum(Y.pred[Y.test==0]==0)
-        FP=sum(Y.pred[Y.test==0]==1)
-        FN=sum(Y.pred[Y.test==1]==0)
+
+        Y.pred.class=round(Y.pred)
+        TP=sum(Y.pred.class[Y.test==1]==1)
+        TN=sum(Y.pred.class[Y.test==0]==0)
+        FP=sum(Y.pred.class[Y.test==0]==1)
+        FN=sum(Y.pred.class[Y.test==1]==0)
 
         ACC=(TP + TN)/(TP+TN +FP+FN)
         Error.rate=1-ACC

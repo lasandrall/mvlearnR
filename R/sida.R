@@ -54,7 +54,7 @@
 #' @seealso \code{\link{cvSIDA}}  \code{\link{sidatunerange}}
 #'
 #' @references
-#' Sandra E. Safo, Eun Jeong Min, and Lillian Haine (20229), Sparse Linear Discriminant
+#' Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022), Sparse Linear Discriminant
 #' Analysis for Multi-view Structured Data, Biometrics.
 #'
 #' @import RSpectra
@@ -362,13 +362,13 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 #'  #train metrics
 #'  Y.pred=mycv$PredictedClass.train-1 #to get this in 0 and 1
 #'  Y.train=Y-1 #to get this in 0 and 1
-#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
 #'
 #'  print(train.metrics)
 #'  #obtain predicted class
 #'  Y.pred=mycv$PredictedClass-1 #to get this in 0 and 1
 #'  Ytest.in=Ytest-1 #to get this in 0 and 1
-#'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=TRUE)
+#'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=FALSE)
 #'  print(test.metrics)
 
 cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
@@ -785,13 +785,13 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
 #'  #train metrics
 #'  Y.pred=mysida$PredictedClass.train-1 #to get this in 0 and 1
 #'  Y.train=Y-1 #to get this in 0 and 1
-#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
+#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
 #'  print(train.metrics)
 #'
 #'  #obtain test predicted class
 #'  Y.pred=mysida$PredictedClass-1 #to get this in 0 and 1
 #'  Ytest.in=Ytest-1 #to get this in 0 and 1
-#'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=TRUE)
+#'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=FALSE)
 #'  print(test.metrics)
 
 sidatunerange=function(Xdata,Y,ngrid=10,standardize=TRUE,

@@ -774,6 +774,7 @@ networkplotinner=function(object){
     #bisect
     ZL=UL + VL
 
+
     X11corr=   stats::cor(as.matrix(X1[,X1var.Ind]), ZL,use = "pairwise" )
     X21corr=   stats::cor(as.matrix(X2[,X2var.Ind]), ZL, use = "pairwise" )
 

@@ -96,7 +96,7 @@
 #'##Performance metrics
 #'##Train Performance Metrics
 #'newPredictions=predict(myresult, newdata=Xdata1, newdata2=Xdata2, type="response")
-#'Y.pred=round(newPredictions$pred.mod)
+#'Y.pred=newPredictions$pred.mod #predicted probabilities
 #'Y.train=Y
 #'train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
 #'print(train.metrics)
@@ -104,7 +104,7 @@
 #'##Test Performance Metrics
 #'Y.test=sidaData[[4]]-1
 #'newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2, type="response")
-#'Y.pred=round(newPredictions$pred.mod)
+#'Y.pred=newPredictions$pred.mod #predicted probabilities
 #'test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
 #'print(test.metrics)
 
@@ -261,7 +261,7 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #'##Performance metrics
 #'##Train Performance Metrics
 #'newPredictions=predict(myresult, newdata=Xdata1, newdata2=Xdata2, type="response")
-#'Y.pred=round(newPredictions$pred.mod)
+#'Y.pred=newPredictions$pred.mod #predicted probabilities
 #'Y.train=Y
 #'train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=TRUE)
 #'print(train.metrics)
@@ -269,7 +269,7 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #'##Test Performance Metrics
 #'Y.test=sidaData[[4]]-1
 #'newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2, type="response")
-#'Y.pred=round(newPredictions$pred.mod)
+#'Y.pred=newPredictions$pred.mod #predicted probabilities
 #'test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
 #'print(test.metrics)
 
