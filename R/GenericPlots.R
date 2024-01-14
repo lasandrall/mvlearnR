@@ -74,7 +74,7 @@ VarImportancePlot <- function(object){
       if(dim(hatalpha[[i]])[2] > 1){
         hatalpha.temp[[i]]=rowMeans(abs(hatalpha[[i]]))
         col1<-order(abs(hatalpha.temp[[i]]), decreasing = T)
-        mycolnames=sub("\\;.*", "", colnames(object$InputData[[i]]))
+        mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[i]])))
         col1name <- data.frame(mycolnames[col1])
         col3 <- hatalpha.temp[[i]][col1]
         col4 <- col3/col3[1]
@@ -90,7 +90,7 @@ VarImportancePlot <- function(object){
         print(dfView[[i]][1:topk,])
       }else if(dim(hatalpha[[i]])[2] ==1){
         col1<-order(abs(hatalpha[[i]]), decreasing = T)
-        mycolnames=sub("\\;.*", "", colnames(object$InputData[[i]]))
+        mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[i]])))
         col1name <- data.frame(mycolnames[col1])
         col2=hatalpha[[i]][col1]
         col3 <- abs(hatalpha[[i]][col1])
@@ -183,7 +183,7 @@ VarImportancePlot <- function(object){
       }
 
       #col1 <- order(abs(object$selp.fit$hatalpha[,i]), decreasing = T)
-      col1name=colnames(object$InputData[[1]])[col1]
+      col1name=colnames(as.data.frame(object$InputData[[1]]))[col1]
       #print(col1name[1:5])
       #col2 <- object$selp.fit$hatalpha[,i][col1]
       col3 <- abs(col2)
@@ -227,7 +227,7 @@ VarImportancePlot <- function(object){
       }
 
       #col1 <- order(abs(object$selp.fit$hatbeta[,i]), decreasing = T)
-      col1name=colnames(object$InputData[[2]])[col1]
+      col1name=colnames(as.data.frame(object$InputData[[2]]))[col1]
       #print(col1name[1:5])
       #col2 <- object$selp.fit$hatbeta[,i][col1]
       col3 <- abs(col2)

@@ -21,7 +21,7 @@ vimp=function(fit,method){
       if(dim(hatalpha[[i]])[2] > 1){
         hatalpha.temp[[i]]=rowMeans(abs(hatalpha[[i]]))
         col1<-order(abs(hatalpha.temp[[i]]), decreasing = T)[1:topk]
-        mycolnames=sub("\\;.*", "", colnames(fit$InputData[[i]]))
+        mycolnames=sub("\\;.*", "", colnames(as.data.frame(fit$InputData[[i]])))
         graph.dat[[i]] <- data.frame(mycolnames[col1])
         #graph.dat[[i]] <- data.frame(name=order(abs(fit$hatalpha[[i]]), decreasing = T)[1:20])
         graph.dat[[i]]$val <- hatalpha.temp[[i]][col1]
@@ -29,7 +29,7 @@ vimp=function(fit,method){
         graph.dat[[i]]$abs_val <- abs(graph.dat[[i]]$val)
       }else if(dim(hatalpha[[i]])[2] ==1){
         col1<-order(abs(hatalpha[[i]]), decreasing = T)[1:topk]
-        mycolnames=sub("\\;.*", "", colnames(fit$InputData[[i]]))
+        mycolnames=sub("\\;.*", "", colnames(as.data.frame(fit$InputData[[i]])))
         graph.dat[[i]] <- data.frame(mycolnames[col1])
         graph.dat[[i]]$val <- fit$hatalpha[[i]][col1]
         graph.dat[[i]]$abs_val <- abs(graph.dat[[i]]$val)
@@ -64,7 +64,7 @@ vimp=function(fit,method){
         #graph.dat[[1]]=data.frame(name=order(abs(hatalpha[,i]), decreasing = T)[1:20])
         col1<-order(abs(hatalpha[,i]), decreasing = T)[1:topk]
         #col1<-(name=order(abs(hatalpha[,i]), decreasing = T)[1:20])
-        mycolnames=sub("\\;.*", "", colnames(fit$InputData[[i]]))
+        mycolnames=sub("\\;.*", "", colnames(as.data.frame(fit$InputData[[i]])))
         graph.dat[[1]] <- data.frame(mycolnames[col1])
         #print(graph.dat[[1]][1:5,])
         #print(hatalpha[,i][graph.dat[[i]]$name])
@@ -76,7 +76,7 @@ vimp=function(fit,method){
       for(i in 1){
         #col1=data.frame(name=order(abs(hatbeta[,i]), decreasing = T)[1:20])
         col1=order(abs(hatbeta[,i]), decreasing = T)[1:topk]
-        mycolnames=sub("\\;.*", "", colnames(fit$InputData[[2]]))
+        mycolnames=sub("\\;.*", "", colnames(as.data.frame(fit$InputData[[2]])))
         graph.dat[[2]] <- data.frame(mycolnames[col1])
         graph.dat[[2]]$val <- hatbeta[,i][col1]
         graph.dat[[2]]$abs_val <- abs(graph.dat[[2]]$val)
