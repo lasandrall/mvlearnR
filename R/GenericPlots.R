@@ -270,11 +270,11 @@ VarImportancePlot <- function(object){
 #' and the two views under consideration. This network graph
 #' has potential to shed light on the complex associations between pairs of views.
 #' @param object the output from SIDA, SIDANet, and SELPCCA methods
-#' @param cutoff a numeric value between 0 and 1 of similarity cutoff to use when
-#' generating graphs. Variable pairs with high
+#' @param cutoff a vector containing  numeric values between 0 and 1 of similarity cutoff to use when
+#' generating graphs. Length of vector is number of pairwise data combinations. Variable pairs with high
 #' similarity measure may be of interest. The relevance of the associations can be explored by changing the cutoff.
 #' This can also be used to reduce the size of the graph, for dense network. Default is 0.5 meaning that graph will only be generated
-#' for variable pairs with similarity value greater than 0.5.
+#' for variable pairs with similarity value greater than 0.5 for each data pair.
 #' @param color.node vector of length two, specifying the colors of nodes for pairs of views. Defaults
 #' to white and yellow.
 #' @param lty.edge character vector of length 2, specifying the line type for edges with positive and negative weights, respectively.
@@ -327,7 +327,7 @@ VarImportancePlot <- function(object){
 ################################################################################
 #Part of this function was borrowed from the mixOmics package and modified for mvlearnR
 ################################################################################
-networkPlot=function(object, cutoff = 0.5,
+networkPlot=function(object, cutoff = NULL,
                            color.node = NULL,
                            lty.edge = c("solid","dashed"),
                            show.edge.labels = FALSE,
@@ -340,15 +340,27 @@ networkPlot=function(object, cutoff = 0.5,
 
   mymat= networkplotinner(object)
   myComb=mymat$ViewCombinations
+  nComb=dim(mymat$ViewCombinations)[2]
+
+  if(is.null(cutoff)){
+    cutoff2=0.5*as.vector.data.frame(matrix(1,nrow=nComb))
+  }else if(length(cutoff)!=nComb){
+    warning("'number of cutoff is less than the data combinations- setting others to 0.5'",
+            call. = FALSE)
+    cutoff2=c(cutoff,0.5*as.vector.data.frame(matrix(1,nrow=nComb-length(cutoff))))
+  }else{
+    cutoff2=cutoff
+  }
+
 
 
   #code for generating network graph follow network plot in mixOmics.
-  nComb=dim(mymat$ViewCombinations)[2]
+  #nComb=dim(mymat$ViewCombinations)[2]
   res=list()
-  for(jj in 1:length(nComb)){
+  for(jj in 1:nComb){
 
     mat=mymat$SimilirarityMatrix[[jj]]
-
+    cutoff=cutoff2[jj]
     if(cutoff>max(abs(mat))){
       warning("'cutoff is greater than largest value in similarity matrix- setting to largest entry'",
               call. = FALSE)
@@ -705,7 +717,8 @@ networkplotinner=function(object){
 
   if(class(object)=="SIDA" | class(object)=="SIDANet"){
     hatalpha=object$hatalpha
-    L=dim(hatalpha[[1]])[2]
+    #L=dim(hatalpha[[1]])[2]
+    L=length(hatalpha)
     for(j in 1:L){
       hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
     }
@@ -735,7 +748,7 @@ networkplotinner=function(object){
   hatalpha.temp=list()
   InputData.temp=list()
 
-  L=dim(hatalpha[[1]])[2]
+  #L=dim(hatalpha[[1]])[2]
 
 
 
