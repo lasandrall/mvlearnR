@@ -1,4 +1,6 @@
 # mvlearnR
+Our new web portal MultiviewPortal (https://www.shinyapps.io/admin/#/application/10521248) can be used for data integration. 
+
 The package **mvlearnR** (https://arxiv.org/pdf/2311.16181.pdf) and accompanying Shiny App (https://multi-viewlearn.shinyapps.io/MultiView_Modeling/) is intended for integrating data from multiple sources
 (e.g. genomics, proteomics, metabolomics). Most existing software packages for multiview learning are decentralized,
 making it difficult for users to perform comprehensive integrative analysis. The new package wraps statistical and machine
