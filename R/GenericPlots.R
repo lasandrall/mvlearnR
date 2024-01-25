@@ -726,13 +726,15 @@ networkplotinner=function(object){
     if(object$method=="selpscca.pred"){
       hatalpha=list(object$selp.fit$hatalpha,object$selp.fit$hatbeta
                     )
-      L=dim(hatalpha[[1]])[2]
+      #L=dim(hatalpha[[1]])[2]
+      L=length(hatalpha)
       for(j in 1:L){
         hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
       }
 
     }else{ hatalpha=list(object$hatalpha,object$hatbeta)
-    L=dim(hatalpha[[1]])[2]
+    #L=dim(hatalpha[[1]])[2]
+    L=length(hatalpha)
     for(j in 1:L){
       hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
     }

@@ -407,13 +407,15 @@ LoadingsPlots=function(object,color.line="darkgray",keep.loadings=NULL){
   }else if( class(object)=="SELPCCA"){
 
     if(object$method=="selpscca.pred"){
-      L=dim(hatalpha[[1]])[2]
+      #L=dim(hatalpha[[1]])[2]
       hatalpha=list(object$selp.fit$hatalpha,object$selp.fit$hatbeta)
+      L=length(hatalpha)
       for(j in 1:L){
         hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
       }
     }else{ hatalpha=list(object$hatalpha,object$hatbeta)
-    L=dim(hatalpha[[1]])[2]
+    #L=dim(hatalpha[[1]])[2]
+    L=length(hatalpha)
     for(j in 1:L){
       hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
     }}
@@ -582,12 +584,14 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,keep.loadings=
   }else if( class(object)=="SELPCCA"){
     if(object$method=="selpscca.pred"){
       hatalpha=list(object$selp.fit$hatalpha,object$selp.fit$hatbeta)
-      L=dim(hatalpha[[1]])[2]
+      L=length(hatalpha)
+      #L=dim(hatalpha[[1]])[2]
       for(j in 1:L){
         hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
       }
     }else{ hatalpha=list(object$hatalpha,object$hatbeta)
-    L=dim(hatalpha[[1]])[2]
+    #L=dim(hatalpha[[1]])[2]
+    L=length(hatalpha)
     for(j in 1:L){
       hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
     }}
@@ -804,13 +808,15 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
   }else if( class(object)=="SELPCCA"){
     if(object$method=="selpscca.pred"){
       hatalpha=list(object$selp.fit$hatalpha,object$selp.fit$hatbeta)
-      L=dim(hatalpha[[1]])[2]
+      #L=dim(hatalpha[[1]])[2]
+      L=length(hatalpha)
       for(j in 1:L){
         hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
       }
     }else{
       hatalpha=list(object$hatalpha,object$hatbeta)
-      L=dim(hatalpha[[1]])[2]
+      #L=dim(hatalpha[[1]])[2]
+      L=length(hatalpha)
     for(j in 1:L){
       hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
     }}
