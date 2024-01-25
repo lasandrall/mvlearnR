@@ -855,6 +855,7 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
       X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
       X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
     }else if(!is.null(Xtest)){
+      Xtest[[jj]]=as.data.frame(Xtest[[jj]])
       if(length(Y)==dim(Xtest[[jj]])[1]){
         X1=as.data.frame(Xtest[[mycomb[1,jj]]])
         X2=as.data.frame(Xtest[[mycomb[2,jj]]])
@@ -892,10 +893,10 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
         keep.loadings[[mycomb[2,jj]]]=sum(hatalpha2!=0)
       }
       #for one view
-      mycolnames=sub("\\;.*", "", colnames(object$InputData[[mycomb[1,jj]]]))
+      mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[mycomb[1,jj]]])))
       var1.names <- mycolnames[col1[1:keep.loadings[[mycomb[1,jj]]]]]
       #for another view
-      mycolnames=sub("\\;.*", "", colnames(object$InputData[[mycomb[2,jj]]]))
+      mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[mycomb[2,jj]]])))
       var2.names <- mycolnames[col2[1:keep.loadings[[mycomb[2,jj]]]]]
 
 
