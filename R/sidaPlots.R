@@ -14,10 +14,10 @@
 #' @param color.palette  character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 #' Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)
 #'
-#' @details The function will return correlation plot(s).
+#' @details The function will return either a single ggplot (n views == 2), or a list of ggplots (n views > 2). 
 #'
 #' @return
-#' \item{NULL}{}
+#' \item{ggplot}{}
 #'
 #' @seealso \code{\link{cvSIDA}} \code{\link{sidatunerange}}
 #' \code{\link{DiscriminantPlots}}
@@ -57,6 +57,7 @@
 #' ##----plot discriminant and correlation plots
 #' #---------Correlation plot
 #' mycorrplot=CorrelationPlots(Xtestdata,Ytest,mysida$hatalpha)
+#' mycorrplot
 #'
 CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,method.used="SIDA",color.palette=NULL){
 
@@ -189,148 +190,89 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,meth
 #' ##----plot discriminant plots
 #' #---------Discriminant plot
 #' mydisplot=DiscriminantPlots(Xtestdata,Ytest,mysida$hatalpha)
+#' gridExtra::grid.arrange(grobs = mydisplot)
 #'
-DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,method.used="SIDA",color.palette=NULL){
+DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
+                           hatalpha=hatalpha,method.used="SIDA",
+                           color.palette=NULL){
 
 
   dsizes=lapply(Xtestdata, function(x) dim(x))
   D=length(dsizes)
 
   nc=unique(Ytest)
-  if(length(unique(Ytest))==2){
-    if(is.null(color.palette)){
-    color.palette=color.BlueOrange(2)
-    }
-    #graphics::par(mfrow=c(1,D))
-        for(d in 1:D){
-          # myScores=Xtestdata[[d]]%*%hatalpha[[d]]
-          # ss21=myScores[Ytest==nc[1],]
-          # ss22=myScores[Ytest==nc[2],]
-          # dd1=stats::density(ss21);
-          # dd2=stats::density(ss22);
-          if(method.used=="SIDA"){
-            myScores=scale(Xtestdata[[d]])%*%hatalpha[[d]]
-            ss21=myScores[Ytest==nc[1],]
-            ss22=myScores[Ytest==nc[2],]
-            dd1=stats::density(ss21);
-            dd2=stats::density(ss22);
-              plot(dd1,xlim=c(min(myScores[,1]-0.7),max(myScores[,1]+0.7)),col=color.palette[1],cex.axis=1.5,
-                   cex.lab=1.5,lwd=2.5,
-                   xlab="First Discriminant Score ",
-                   main=paste("Discriminant Plot for View",d),
-                   ylim=c(0,max(dd1$y,dd2$y)))
-          }else if(method.used=="SELPCCA"){
-            myScores=scale(Xtestdata[[d]])%*%as.data.frame(hatalpha[[d]])[,1]
-            ss21=myScores[Ytest==nc[1],]
-            ss22=myScores[Ytest==nc[2],]
-            dd1=stats::density(ss21);
-            dd2=stats::density(ss22);
-            plot(dd1,xlim=c(min(myScores[,1]-0.7),max(myScores[,1]+0.7)),col=color.palette[1],cex.axis=1.5,
-                 cex.lab=1.5,lwd=2.5,
-                 xlab="First Canonical Variate ",
-                 main=paste("Discriminant Plot for View",d),
-                 ylim=c(0,max(dd1$y,dd2$y)))
-          }
-          graphics::lines(dd2,xlim=c(min(myScores[,1]-0.7),max(myScores[,1]+0.7)),col=color.palette[2],cex.axis=1,cex.lab=1,lwd=2.5)
-          graphics::points(cbind(ss21,rep(0,length(ss21))),col=color.palette[1],pch=3,cex=4)
-          graphics::points(cbind(ss22,rep(0,length(ss22))),col=color.palette[2],pch=1,cex=4)
-          #legend("topleft", legend = c(paste("Class", nc[1]),paste("Class", nc[2])), col = c("red","black"),cex=1.2,lty=1,lwd=2.5)
-          graphics::legend("topleft", inset=c(0,0),legend=c(nc), col = color.palette,pch=c(3,1),title="Class")
+  if(is.null(color.palette)){
+    color.palette=color.BlueOrange(length(nc))
   }
-    #graphics::par(mfrow=c(1,1))
-  }else if(length(unique(Ytest))>2){
-    # graphics::par(mfrow=c(1,D))
-    # nnc=length(unique(Ytest))
-    # mycol=mat.or.vec(length(Ytest),1)
-    # mypch=mat.or.vec(length(Ytest),1)
-    # for(j in 1:length(mycol)){
-    #   mycol[j]=nc[Ytest[j]]
-    #   mypch[j]=nc[Ytest[j]]
-    #
-    # }
-    if(is.null(color.palette)){
-      color.palette=color.BlueOrange(length(unique(Ytest)))
-    }
+
+  plots = list()
+  if(length(nc)==2){
+    plots = lapply(1:D,
+                   FUN = function(d){
+                     
+                     if(method.used=="SIDA"){
+                       myScores=scale(Xtestdata[[d]])%*%hatalpha[[d]]
+                       xlabel = "First Discriminant Score"
+                     }else if(method.used=="SELPCCA"){
+                       myScores=scale(Xtestdata[[d]])%*%as.data.frame(hatalpha[[d]])[,1]
+                       xlabel = "First Canonical Variate"
+                     }
+                     data.frame(score = myScores, 
+                                class = Ytest) %>%
+                       mutate(class = factor(class)) %>%
+                       ggplot(aes(x = score, color = class))+
+                       geom_point(aes(y = 0), shape = "|")+
+                       geom_density(outline.type = "upper",
+                                    trim = FALSE, show.legend = FALSE)+
+                       scale_colour_manual(values=color.palette) +
+                       labs(x = xlabel,
+                            y = "Density",
+                            title = paste("Discriminant Plot for View",d))+
+                       theme_bw() +
+                       theme(axis.title = element_text(face="bold"))+
+                       theme(legend.position = c(0.1,0.5),
+                             legend.key.height = unit(1, "mm"),
+                             legend.background = element_rect(color = "darkgray"))
+                   }
+    )
+  }else if(length(nc)>2){
+
     Classes=factor(Ytest)
-
-    if(method.used=="SIDA"){
-      for(d in 1:D){
-        #Scores=cbind.data.frame(Ytest,Xtestdata[[d]]%*%cbind(hatalpha[[d]],hatalpha[[d]]))
-        Scores=cbind.data.frame(Ytest,scale(Xtestdata[[d]])%*%hatalpha[[d]])
-        # plot(Scores[,2], Scores[,3],col=mycol,lwd=2.5,pch=mypch,
-        #      xlab=paste(
-        #        "First Discriminant Score for View", d),
-        #      ylab=paste("Second Discriminant Score for View", d),
-        #      xaxt="n",
-        #      yaxt="n",
-        #      main=paste("Discriminant Plot for View",d),
-        #      cex.lab=1.5,cex.axis=1.5,cex.main=1.5,cex.sub=1.5)
-        # graphics::par(xpd=TRUE)
-        # graphics::legend("topright",bty = "n",legend=c(nc),col = 1:max(nc), pch=1:max(nc),title="Class")
-
-
-
-
-        #dev.new()
-        print(
-          ggplot2::ggplot(Scores[,-1], aes(Scores[,2], Scores[,3])) +
-            geom_point(aes(shape=Classes,colour = Classes),size=4) +
-            xlab(paste(
-              "First Discriminant Score for View", d)) +
-            ylab(paste("Second Discriminant Score for View", d)) +
-            ggtitle(paste("Discriminant Plot for View",d)) +
-            scale_colour_manual(values=color.palette) +
-            scale_fill_manual(values = color.palette) +
-            theme_bw() +
-            stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),type = "norm", geom = "polygon", alpha = 0.1)+
-            guides(colour = guide_legend(override.aes = list(size=5))) +
-            scale_size_continuous(range=c(10,15))+
-            theme_bw() +
-            theme(axis.title = element_text(face="bold"))+
-            theme(axis.text = element_blank())+
-            theme(axis.ticks.x = element_blank())+
-            theme(axis.ticks.y=element_blank())+
-            theme(axis.ticks = element_blank())
-        )
-        Sys.sleep(2)
-      }
-    }else if(method.used=="SELPCCA"){
-      for(d in 1:D){
-
-      Scores=cbind.data.frame(Ytest,scale(Xtestdata[[d]])%*%as.data.frame(hatalpha[[d]])[,1],
-                              scale(Xtestdata[[d]])%*%as.data.frame(hatalpha[[d]])[,2])
-      print(
-        ggplot2::ggplot(Scores[,-1], aes(Scores[,2], Scores[,3])) +
-          geom_point(aes(shape=Classes,colour = Classes),size=4) +
-          xlab(paste(
-            "First Canonical Variate for View", d)) +
-          ylab(paste("Second Canonical Variate for View", d)) +
-          ggtitle(paste("Discriminant Plot for View",d)) +
-          scale_colour_manual(values=color.palette) +
-          scale_fill_manual(values = color.palette) +
-          theme_bw() +
-          stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),type = "norm", geom = "polygon", alpha = 0.1)+
-          guides(colour = guide_legend(override.aes = list(size=5))) +
-          scale_size_continuous(range=c(10,15))+
-          theme_bw() +
-          theme(axis.title = element_text(face="bold"))+
-          theme(axis.text = element_blank())+
-          theme(axis.ticks.x = element_blank())+
-          theme(axis.ticks.y=element_blank())+
-          theme(axis.ticks = element_blank())
-      )
-      Sys.sleep(2)
-      }
-    }
-
-
-
-    #graphics::par(mfrow=c(1,1))
+    
+    plots = lapply(1:D,
+                   FUN = function(d){
+                     if(method.used=="SIDA"){
+                       Scores=cbind.data.frame(Ytest,
+                                               scale(Xtestdata[[d]])%*%hatalpha[[d]])
+                       xlabel = paste("First Discriminant Score for View", d)
+                       ylabel = paste("Second Discriminant Score for View", d)
+                     }else if(method.used=="SELPCCA"){
+                       Scores=cbind.data.frame(Ytest,scale(Xtestdata[[d]])%*%as.data.frame(hatalpha[[d]])[,1],
+                                               scale(Xtestdata[[d]])%*%as.data.frame(hatalpha[[d]])[,2])   
+                       xlabel = paste("First Canonical Variate for View", d)
+                       ylabel = paste("Second Canonical Variate for View", d)
+                     }
+                     ggplot2::ggplot(Scores[,-1], aes(Scores[,2], Scores[,3])) +
+                       geom_point(aes(shape=Classes,colour = Classes),size=4) +
+                       labs(x = xlabel,
+                            y = ylabel,
+                            title = paste("Discriminant Plot for View",d))
+                       scale_colour_manual(values=color.palette) +
+                       scale_fill_manual(values = color.palette) +
+                       theme_bw() +
+                       stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),type = "norm", geom = "polygon", alpha = 0.1)+
+                       guides(colour = guide_legend(override.aes = list(size=5))) +
+                       scale_size_continuous(range=c(10,15))+
+                       theme_bw() +
+                       theme(axis.title = element_text(face="bold"))+
+                       theme(axis.text = element_blank())+
+                       theme(axis.ticks.x = element_blank())+
+                       theme(axis.ticks.y=element_blank())+
+                       theme(axis.ticks = element_blank())
+                   }
+    )
   }
-
-
-  return(invisible(NULL))
-
+  return(plots)
 }
 
 
