@@ -13,6 +13,7 @@
 #' Options are "SIDA" and "SELPCCA". Default is "SIDA"
 #' @param color.palette  character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 #' Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)
+#' @param plotIt boolean; if TRUE, plots the plots. If FALSE, only returns the plots. This is useful to customize the ggplots.
 #'
 #' @details The function will return either a single ggplot (n views == 2), or a list of ggplots (n views > 2). 
 #'
@@ -56,10 +57,12 @@
 #'
 #' ##----plot discriminant and correlation plots
 #' #---------Correlation plot
-#' mycorrplot=CorrelationPlots(Xtestdata,Ytest,mysida$hatalpha)
-#' mycorrplot
+#' CorrelationPlots(Xtestdata,Ytest,mysida$hatalpha)
+#' 
 #'
-CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,method.used="SIDA",color.palette=NULL){
+CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,
+                          method.used="SIDA",color.palette=NULL,
+                          plotIt = TRUE){
 
   if(is.null(color.palette)){
     color.palette=color.BlueOrange(length(unique(Ytest)))
@@ -117,6 +120,15 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,meth
                      theme(axis.ticks.y=element_blank())+
                      theme(axis.ticks = element_blank())
                  })
+
+  if (plotIt){
+    if (length(plots) == 1){
+      print(plots[[1]])
+    }else{
+      gridExtra::grid.arrange(grobs = plots)
+    }
+    return()
+  }
   # return the actual ggplot object if there was only one; otherwise,
   # return a list of ggplot objects, and a message to print using grid.arrange()
   if (length(plots) == 1){
@@ -146,6 +158,7 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,meth
 #' plot will be generated for the first two canonical variates.
 #' @param color.palette  character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 #' Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)
+#' @param plotIt boolean, if TRUE, prints the plots. If FALSE, returns the ggplots as an object or list.  This is useful to customize the ggplots.
 #' @details The function will return discriminant plots.
 #'
 #' @return
@@ -194,7 +207,7 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,meth
 #'
 DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
                            hatalpha=hatalpha,method.used="SIDA",
-                           color.palette=NULL){
+                           color.palette=NULL, plotIt = TRUE){
 
 
   dsizes=lapply(Xtestdata, function(x) dim(x))
@@ -256,14 +269,14 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
                        geom_point(aes(shape=Classes,colour = Classes),size=4) +
                        labs(x = xlabel,
                             y = ylabel,
-                            title = paste("Discriminant Plot for View",d))
+                            title = paste("Discriminant Plot for View",d))+
                        scale_colour_manual(values=color.palette) +
                        scale_fill_manual(values = color.palette) +
                        theme_bw() +
-                       stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),type = "norm", geom = "polygon", alpha = 0.1)+
+                       stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),
+                                    type = "norm", geom = "polygon", alpha = 0.1)+
                        guides(colour = guide_legend(override.aes = list(size=5))) +
                        scale_size_continuous(range=c(10,15))+
-                       theme_bw() +
                        theme(axis.title = element_text(face="bold"))+
                        theme(axis.text = element_blank())+
                        theme(axis.ticks.x = element_blank())+
@@ -271,6 +284,14 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
                        theme(axis.ticks = element_blank())
                    }
     )
+  }
+  if (plotIt){
+    if (length(plots) == 1){
+      print(plots[[1]])
+    }else{
+      gridExtra::grid.arrange(grobs = plots)
+    }
+    return()
   }
   return(plots)
 }
@@ -295,7 +316,8 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
 #' in situations where the number of variables selected is large, and could clutter the plot. If this number is more
 #' than the variables selected, it will be set to the maximum number of variables selected for each view.
 #' Default is plotting all selected variables.
-#' @details The function will return loading plots, one for each view.
+#' @param plotIt boolean, if TRUE, prints the plots. If FALSE, returns the ggplots as an object or list.  This is useful to customize the ggplots.
+#' @details The function will either return nothing (if plotIt == TRUE), or return loading plots, one for each view.
 #'
 #' @return
 #' \item{NULL}{}
@@ -328,7 +350,8 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
 #'                      Ytest=Ytest)
 #'LoadingsPlots(mycvsidanet,keep.loadings=c(3,3))
 
-LoadingsPlots=function(object,color.line="darkgray",keep.loadings=NULL){
+LoadingsPlots=function(object,color.line="darkgray",
+                       keep.loadings=NULL, plotIt = TRUE){
   if(class(object)=="SIDA" | class(object)=="SIDANet"){
     hatalpha=object$hatalpha
   }else if( class(object)=="SELPCCA"){
@@ -346,7 +369,6 @@ LoadingsPlots=function(object,color.line="darkgray",keep.loadings=NULL){
     for(j in 1:L){
       hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
     }}
-
   }
 
   if(is.null(color.line)){
@@ -354,95 +376,85 @@ LoadingsPlots=function(object,color.line="darkgray",keep.loadings=NULL){
   }
 
   D <- length(hatalpha)
-
   L=dim(hatalpha[[1]])[2]
-
-
   ncomp=dim(hatalpha[[1]])[2]
-  for(jj in 1:D){
-
-    X1=as.data.frame(object$InputData[[jj]])
-    if(ncomp == 1){
-      if(class(object)=="SIDA" | class(object)=="SIDANet"){
-        stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
-      }else if(class(object)=="SELPCCA"){
-        stop("Loadings plot not applicable with one CCA vector " , call. = FALSE)
-      }
-    }else if (ncomp >1){
-      hatalpha1=rowSums(abs(hatalpha[[jj]]))
+  
+  if(ncomp == 1){
+    if(class(object)=="SIDA" | class(object)=="SIDANet"){
+      stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
+    }else if(class(object)=="SELPCCA"){
+      stop("Loadings plot not applicable with one CCA vector " , call. = FALSE)
     }
-      hatalpha2=hatalpha1[order(hatalpha1,decreasing=TRUE)]
-      col1=order(hatalpha1,decreasing=TRUE)
-
-      X1var.Ind=which(as.matrix(hatalpha1)!=0, arr.ind = TRUE)
-
-      if(!is.null(keep.loadings)){
-
-        if(keep.loadings[[jj]]>sum(hatalpha1!=0)){
-          warning("keep.loadings is greater than maximum number of variables selected, setting to this maximum")
-          keep.loadings[[jj]]=sum(hatalpha1!=0)
-        }
-        # X1var.Ind1=which(as.data.frame(hatalpha1)!=0, arr.ind = TRUE)[,1]
-        #
-        #
-        # X1var.Ind=colnames(X1[,X1var.Ind1])
-        # which(as.data.frame(hatalpha1[col1[1:keep.loadings[[jj]]]])!=0, arr.ind = TRUE)
-        myloadings=as.data.frame(scale(hatalpha[[jj]][col1[1:keep.loadings[jj]],],center=FALSE, scale=FALSE))
-
-        #X1var.ind[,1][col1[1:keep.loadings[[jj]]]]
-        X1var.ind=colnames(X1)[col1[1:keep.loadings[[jj]]]]
-        #X1var.Ind1=(col1[X1var.Ind[,1]])[1:keep.loadings[[jj]]]
-        var.names=sub("\\;.*", "", X1var.ind)
-
-      }else if(is.null(keep.loadings)){
-        X1var.Ind=which(as.matrix(hatalpha1)!=0, arr.ind = TRUE)
-        #X1var.Ind=which(as.matrix(hatalpha1)!=0, arr.ind = TRUE)
-        X1var.Ind1=X1var.Ind[,1]
-        var.names=sub("\\;.*", "", colnames(X1[,X1var.Ind1]))
-        myloadings=as.data.frame(scale(hatalpha[[jj]][X1var.Ind1,],center=FALSE, scale=FALSE))
-      }
-
-    # X1var.Ind=X1var.Ind[,1]
-    # var.names=sub("\\;.*", "", colnames(X1[,X1var.Ind]))
-
-     #myloadings=as.data.frame(scale(hatalpha[[jj]][col1[1:keep.loadings[jj]],],center=FALSE, scale=FALSE))
-     if(keep.loadings[[jj]]==1){
-       myloadings=as.data.frame(t(scale(myloadings,center=FALSE,scale=FALSE)))
-     }
-
-  print(
-    ggplot2::ggplot(myloadings, aes(myloadings[,1], myloadings[,2])) +
-      geom_text(aes(label = var.names), size = 4) +
-      geom_segment(data = myloadings[,1:2], aes(x=0, y=0, xend=myloadings[,1], yend=myloadings[,2]),
-                   linewidth=1,
-                   arrow=arrow(length=unit(0.3, "cm")), color = color.line) +
-      xlab(
-        if(class(object)=="SIDA" | class(object)=="SIDANet"){
-          paste("First Discriminant Vector for View", jj)
-        }else if(class(object)=="SELPCCA"){
-          paste("First Canonical Vector for View", jj)
-        }
-      ) +
-      ylab(if(class(object)=="SIDA" | class(object)=="SIDANet"){
-        paste("Second Discriminant Vector for View", jj)
-      }else if(class(object)=="SELPCCA"){
-        paste("Second Canonical Vector for View", jj)
-      }
-      ) +
-      ggtitle("Loading Plot for View", jj) + theme_bw() +
-      theme(axis.line = element_line(colour = "black"),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()) +
-      geom_vline(xintercept = 0, color = "darkgrey") +
-      geom_hline(yintercept = 0, color = "darkgrey")+
-      ggthemes::theme_stata(scheme="s2manual")+
-      xlim(-1,1)
-  )
-  Sys.sleep(2)
-
+  }
+  
+  if (is.null(keep.loadings)){
+    warning("keep.loadings not specified, keeping all possible")
+    keep.loadings = sapply(hatalpha,
+                            FUN = function(x){
+                              sum(rowSums(abs(x)) != 0)
+                            })
   }
 
-#  return(invisible(list(SimilirarityMatrix=Mjk, ViewCombinations=mycomb)))
+  plots = lapply(1:D,
+                 FUN = function(jj){
+                   X1=as.data.frame(object$InputData[[jj]])
+
+                   hatalpha1=rowSums(abs(hatalpha[[jj]]))
+                   hatalpha2=hatalpha1[order(hatalpha1,decreasing=TRUE)]
+                   col1=order(hatalpha1,decreasing=TRUE)
+                   
+                   X1var.Ind=which(as.matrix(hatalpha1)!=0, arr.ind = TRUE)
+                   
+
+                   if(keep.loadings[jj]>sum(hatalpha1!=0)){
+                     warning("keep.loadings is greater than maximum number of variables selected, setting to this maximum")
+                     keep.loadings[jj]=sum(hatalpha1!=0)
+                   }
+                   myloadings=as.data.frame(scale(hatalpha[[jj]][col1[1:keep.loadings[jj]],],center=FALSE, scale=FALSE))
+                   X1var.ind=colnames(X1)[col1[1:keep.loadings[jj]]]
+                   var.names=sub("\\;.*", "", X1var.ind)
+
+                   
+                   if(keep.loadings[jj]==1){
+                       myloadings=as.data.frame(t(scale(myloadings,center=FALSE,scale=FALSE)))
+                     }
+                   
+                     ggplot2::ggplot(myloadings, aes(myloadings[,1], myloadings[,2])) +
+                       geom_text(aes(label = var.names), size = 4) +
+                       geom_segment(data = myloadings[,1:2], aes(x=0, y=0, xend=myloadings[,1], yend=myloadings[,2]),
+                                    linewidth=1,
+                                    arrow=arrow(length=unit(0.3, "cm")), color = color.line) +
+                       xlab(
+                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                           paste("First Discriminant Vector for View", jj)
+                         }else if(class(object)=="SELPCCA"){
+                           paste("First Canonical Vector for View", jj)
+                         }
+                       ) +
+                       ylab(if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                         paste("Second Discriminant Vector for View", jj)
+                       }else if(class(object)=="SELPCCA"){
+                         paste("Second Canonical Vector for View", jj)
+                       }
+                       ) +
+                       ggtitle("Loading Plot for View", jj) + theme_bw() +
+                       theme(axis.line = element_line(colour = "black"),
+                             panel.grid.major = element_blank(),
+                             panel.grid.minor = element_blank()) +
+                       geom_vline(xintercept = 0, color = "darkgrey") +
+                       geom_hline(yintercept = 0, color = "darkgrey")+
+                       ggthemes::theme_stata(scheme="s2manual")+
+                       xlim(-1,1)
+                 })
+  if (plotIt){
+    if (length(plots) == 1){
+      print(plots[[1]])
+    }else{
+      gridExtra::grid.arrange(grobs = plots)
+    }
+    return()
+  }
+  plots
 }
 
 
@@ -471,7 +483,9 @@ LoadingsPlots=function(object,color.line="darkgray",keep.loadings=NULL){
 #' in situations where the number of variables selected is large, and could clutter the plot. If this number is more
 #' than the variables selected, it will be set to the maximum number of variables selected for each view.
 #' Default is plotting all selected variables.
-#' @details The function will return loading plots, one for each view.
+#' @param plotIt boolean, if TRUE, prints the plots. If FALSE, returns the ggplots as an object or list. This is useful to customize the ggplots. 
+
+#' @details The function will either show the plots (if plotIt == TRUE) or return a list of loading plots, one for each view.
 #'
 #' @return
 #' \item{NULL}{}
@@ -504,7 +518,8 @@ LoadingsPlots=function(object,color.line="darkgray",keep.loadings=NULL){
 #'                      Ytest=Ytest)
 #'WithinViewBiplot(mycvsidanet,Y, color.palette=NULL,keep.loadings=c(3,3))
 
-WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,keep.loadings=NULL){
+WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,
+                          keep.loadings=NULL, plotIt = TRUE){
 
   if(class(object)=="SIDA" | class(object)=="SIDANet"){
     hatalpha=object$hatalpha
@@ -530,142 +545,126 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,keep.loadings=
   }
 
   D <- length(hatalpha)
-
   L=dim(hatalpha[[1]])[2]
-
-
-
-  # for(j in 1:L){
-  #   hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
-  # }
-
-
   Classes=factor(Y)
-
   ncomp=dim(hatalpha[[1]])[2]
-  for(jj in 1:D){
-
-    X1=as.data.frame(object$InputData[[jj]])
-    if(ncomp == 1){
-      if(class(object)=="SIDA" | class(object)=="SIDANet"){
-        stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
-      }else if(class(object)=="SELPCCA"){
-        stop("Loadings plot not applicable with one CCA vector" , call. = FALSE)
-      }
-    }else if (ncomp >1){
-      hatalpha1=rowSums(abs(hatalpha[[jj]]))
+  
+  if(ncomp == 1){
+    if(class(object)=="SIDA" | class(object)=="SIDANet"){
+      stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
+    }else if(class(object)=="SELPCCA"){
+      stop("Loadings plot not applicable with one CCA vector" , call. = FALSE)
     }
-
-    hatalpha2=hatalpha1[order(hatalpha1,decreasing=TRUE)]
-    col1=order(hatalpha1,decreasing=TRUE)
-
-    X1var.Ind=which(as.matrix(hatalpha1)!=0, arr.ind = TRUE)
-
-   if(!is.null(keep.loadings)){
-    if(keep.loadings[[jj]]>sum(hatalpha1!=0)){
-      warning("keep.loadings is greater than maximum number of variables selected, setting to this maximum")
-      keep.loadings[[jj]]=sum(hatalpha1!=0)
-    }
-
-    # X1var.Ind1=(col1[X1var.Ind[,1]])[1:keep.loadings[[jj]]]
-    # var.names=sub("\\;.*", "", colnames(X1)[X1var.Ind1])
-
-    myloadings=as.data.frame(scale(hatalpha[[jj]][col1[1:keep.loadings[jj]],],center=FALSE, scale=FALSE))
-
-    #X1var.ind[,1][col1[1:keep.loadings[[jj]]]]
-    X1var.ind=colnames(X1)[col1[1:keep.loadings[[jj]]]]
-    #X1var.Ind1=(col1[X1var.Ind[,1]])[1:keep.loadings[[jj]]]
-    var.names=sub("\\;.*", "", X1var.ind)
-
-
-
-   }else if(is.null(keep.loadings)){
-     X1var.Ind=which(as.matrix(hatalpha1)!=0, arr.ind = TRUE)
-     X1var.Ind1=X1var.Ind[,1]
-     var.names=sub("\\;.*", "", colnames(X1)[X1var.Ind1])
-     myloadings=as.data.frame(scale(hatalpha[[jj]][X1var.Ind1,],center=FALSE, scale=FALSE))
-
-   }
-
-
-    #X1var.Ind=X1var.Ind[,1]
-    #var.names=sub("\\;.*", "", colnames(X1[,X1var.Ind]))
-
-    #Scores=cbind.data.frame(Y,as.matrix(X1[,X1var.Ind])%*%hatalpha[[jj]][X1var.Ind,]) #selected variables
-    if(is.null(Xtest)){
-      if(length(Y)!=dim(X1)[1]){
-        stop('size of Y must be the same as X')
-      }
-      Scores=cbind.data.frame(Y,scale(as.matrix(X1))%*%hatalpha[[jj]])
-    }else if(!is.null(Xtest)){
-        if(length(Y)==dim(Xtest[[jj]])[1]){
-          X1=Xtest[[jj]]
-        }
-        Scores=cbind.data.frame(Y,scale(as.matrix(X1))%*%hatalpha[[jj]])
-    }
-
-
-    if(keep.loadings[[jj]]==1){
-      myloadings=as.data.frame(t(myloadings))
-    }else{
-      myloadings=as.data.frame(myloadings)
-    }
-
-    mxmax=max(abs(Scores[,2]))+20
-    mymax=max(abs(Scores[,3]))+20
-
-    print(
-      ggplot2::ggplot() +
-        geom_point(data = Scores[,-1], aes(shape=Classes,x = Scores[,2], y = Scores[,3], colour = Classes),size=4) +
-        stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),type = "norm", geom = "polygon", alpha = 0.1)+
-        geom_segment(data = myloadings[,1:2], aes(x=0, y=0, xend=mxmax*myloadings[,1], yend=mymax*myloadings[,2]),
-                     linewidth=1,
-                     arrow=arrow(length=unit(0.3, "cm")), color = "black") +
-        scale_y_continuous(sec.axis = sec_axis(~./26)) +
-        geom_text(data = myloadings, aes(x=mxmax*myloadings[,1], y=mymax*myloadings[,2], label = var.names),
-                  size = 3.5, hjust = "outward", vjust = "outward") +
-        scale_colour_manual(values=color.palette) +
-        scale_fill_manual(values = color.palette) +
-        xlab(
-          if(class(object)=="SIDA" | class(object)=="SIDANet"){
-            paste(
-              "First Discriminant Score for View ", jj)
-          }else if(class(object)=="SELPCCA"){
-            paste("First Canonical Variate for View ",jj)
-          }
-          # paste(
-          # "First Discriminant Score for View ", jj)
-          ) +
-        ylab(
-          if(class(object)=="SIDA" | class(object)=="SIDANet"){
-            paste(
-              "Second Discriminant Score for View ", jj)
-          }else if(class(object)=="SELPCCA"){
-            paste("Second Canonical Variate for View ",jj)
-          }
-          #paste("Second Discriminant Score for View ", jj)
-          ) +
-        ggtitle(
-          if(class(object)=="SIDA" | class(object)=="SIDANet"){
-            paste("SIDA Biplot for View ",jj)
-          }else if(class(object)=="SELPCCA"){
-            paste("SELPCCA Biplot for View ",jj)
-          }
-        )+
-        theme_bw() +
-        theme(axis.line = element_line(colour = "black"),
-              panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank()) +
-        geom_vline(xintercept = 0, color = "darkgrey") +
-        geom_hline(yintercept = 0, color = "darkgrey") +
-        ggthemes::theme_stata(scheme="s2manual")+
-        xlim(min(Scores[,2])-10,max(Scores[,2])+10)
-    )
-    Sys.sleep(2)
-
+  }
+  
+  if (is.null(keep.loadings)){
+    warning("keep.loadings not specified, keeping all possible")
+    keep.loadings = sapply(hatalpha,
+                           FUN = function(x){
+                             sum(rowSums(abs(x)) != 0)
+                           })
   }
 
-  #  return(invisible(list(SimilirarityMatrix=Mjk, ViewCombinations=mycomb)))
+    
+  plots = lapply(1:D,
+                 FUN = function(jj){
+                   X1=as.data.frame(object$InputData[[jj]])
+
+                   hatalpha1=rowSums(abs(hatalpha[[jj]]))
+                   hatalpha2=hatalpha1[order(hatalpha1,decreasing=TRUE)]
+                   col1=order(hatalpha1,decreasing=TRUE)
+                   
+                   X1var.Ind=which(as.matrix(hatalpha1)!=0, arr.ind = TRUE)
+                   
+
+                     if(keep.loadings[[jj]]>sum(hatalpha1!=0)){
+                       warning("keep.loadings is greater than maximum number of variables selected, setting to this maximum")
+                       keep.loadings[[jj]]=sum(hatalpha1!=0)
+                     }
+
+                     myloadings=as.data.frame(scale(hatalpha[[jj]][col1[1:keep.loadings[jj]],],
+                                                    center=FALSE, scale=FALSE))
+                     X1var.ind=colnames(X1)[col1[1:keep.loadings[[jj]]]]
+                     var.names=sub("\\;.*", "", X1var.ind)
+
+        
+                  if(is.null(Xtest)){
+                     if(length(Y)!=dim(X1)[1]){
+                       stop('size of Y must be the same as X')
+                     }
+                     Scores=cbind.data.frame(Y,scale(as.matrix(X1))%*%hatalpha[[jj]])
+                   }else if(!is.null(Xtest)){
+                     if(length(Y)==dim(Xtest[[jj]])[1]){
+                       X1=Xtest[[jj]]
+                     }
+                     Scores=cbind.data.frame(Y,scale(as.matrix(X1))%*%hatalpha[[jj]])
+                   }
+                   
+                   
+                   if(keep.loadings[[jj]]==1){
+                     myloadings=as.data.frame(t(myloadings))
+                   }else{
+                     myloadings=as.data.frame(myloadings)
+                   }
+                   
+                   mxmax=max(abs(Scores[,2]))+20
+                   mymax=max(abs(Scores[,3]))+20
+                   
+                    ggplot2::ggplot() +
+                       geom_point(data = Scores[,-1], aes(shape=Classes,x = Scores[,2], y = Scores[,3], colour = Classes),size=4) +
+                       stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),type = "norm", geom = "polygon", alpha = 0.1)+
+                       geom_segment(data = myloadings[,1:2], aes(x=0, y=0, xend=mxmax*myloadings[,1], yend=mymax*myloadings[,2]),
+                                    linewidth=1,
+                                    arrow=arrow(length=unit(0.3, "cm")), color = "black") +
+                       scale_y_continuous(sec.axis = sec_axis(~./26)) +
+                       geom_text(data = myloadings, aes(x=mxmax*myloadings[,1], y=mymax*myloadings[,2], label = var.names),
+                                 size = 3.5, hjust = "outward", vjust = "outward") +
+                       scale_colour_manual(values=color.palette) +
+                       scale_fill_manual(values = color.palette) +
+                       xlab(
+                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                           paste(
+                             "First Discriminant Score for View ", jj)
+                         }else if(class(object)=="SELPCCA"){
+                           paste("First Canonical Variate for View ",jj)
+                         }
+                         # paste(
+                         # "First Discriminant Score for View ", jj)
+                       ) +
+                       ylab(
+                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                           paste(
+                             "Second Discriminant Score for View ", jj)
+                         }else if(class(object)=="SELPCCA"){
+                           paste("Second Canonical Variate for View ",jj)
+                         }
+                         #paste("Second Discriminant Score for View ", jj)
+                       ) +
+                       ggtitle(
+                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                           paste("SIDA Biplot for View ",jj)
+                         }else if(class(object)=="SELPCCA"){
+                           paste("SELPCCA Biplot for View ",jj)
+                         }
+                       )+
+                       theme_bw() +
+                       theme(axis.line = element_line(colour = "black"),
+                             panel.grid.major = element_blank(),
+                             panel.grid.minor = element_blank()) +
+                       geom_vline(xintercept = 0, color = "darkgrey") +
+                       geom_hline(yintercept = 0, color = "darkgrey") +
+                       ggthemes::theme_stata(scheme="s2manual")+
+                       xlim(min(Scores[,2])-10,max(Scores[,2])+10)
+                 })
+  if (plotIt){
+    if (length(plots) == 1){
+      print(plots[[1]])
+    }else{
+      gridExtra::grid.arrange(grobs = plots)
+    }
+    return()
+  }
+  plots
 }
 
 
@@ -729,7 +728,7 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,keep.loadings=
 #'                      Ytest=Ytest)
 #'BetweenViewBiplot(mycvsidanet, Y,keep.loadings=c(3,3) )
 
-BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings=c(20,30)){
+BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings=NULL,plotIt = TRUE){
   if(class(object)=="SIDA" | class(object)=="SIDANet"){
     hatalpha=object$hatalpha
   }else if( class(object)=="SELPCCA"){
@@ -766,169 +765,161 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
   mycomb=combn(D,2) #pairwise combination
   ncomp=dim(hatalpha[[1]])[2]
   myloadings=list()
+  
+
 
   Classes=factor(Y)
 
   ncomp=dim(hatalpha[[1]])[2]
-  for(jj in 1:dim(mycomb)[2]){
-
-    X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
-    X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
-
-    if(is.null(Xtest)){
-      if(length(Y)!=dim(X1)[1]){
-        stop('size of Y must be the same as X')
-      }
-      X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
-      X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
-    }else if(!is.null(Xtest)){
-      Xtest[[jj]]=as.data.frame(Xtest[[jj]])
-      if(length(Y)==dim(Xtest[[jj]])[1]){
-        X1=as.data.frame(Xtest[[mycomb[1,jj]]])
-        X2=as.data.frame(Xtest[[mycomb[2,jj]]])
-      }else{
-        X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
-        X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
-      }
+  
+  if(ncomp == 1){
+    if(class(object)=="SIDA" | class(object)=="SIDANet"){
+      stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
+    }else if(class(object)=="SELPCCA"){
+      stop("Loadings plot not applicable with one CCA vecto " , call. = FALSE)
     }
-
-
-
-    if(ncomp == 1){
-      if(class(object)=="SIDA" | class(object)=="SIDANet"){
-        stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
-      }else if(class(object)=="SELPCCA"){
-        stop("Loadings plot not applicable with one CCA vecto " , call. = FALSE)
-      }
-    }else if (ncomp >1){
-      hatalpha1=rowSums(abs(hatalpha[[mycomb[1,jj]]]))
-      col1=order(hatalpha1,decreasing=TRUE)
-      hatalpha2=rowSums(abs(hatalpha[[mycomb[2,jj]]]))
-      col2=order(hatalpha2,decreasing=TRUE)
-
-    }
-
-
-    if(!is.null(keep.loadings)){
-      if(keep.loadings[[mycomb[1,jj]]]>sum(hatalpha1!=0)){
-        warning("keep.loadings is greater than maximum number of variables selected, setting to this maximum")
-        keep.loadings[[mycomb[1,jj]]]=sum(hatalpha1!=0)
-      }
-
-      if(keep.loadings[[mycomb[2,jj]]]>sum(hatalpha2!=0)){
-        warning("keep.loadings is greater than maximum number of variables selected, setting to this maximum")
-        keep.loadings[[mycomb[2,jj]]]=sum(hatalpha2!=0)
-      }
-      #for one view
-      mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[mycomb[1,jj]]])))
-      var1.names <- mycolnames[col1[1:keep.loadings[[mycomb[1,jj]]]]]
-      #for another view
-      mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[mycomb[2,jj]]])))
-      var2.names <- mycolnames[col2[1:keep.loadings[[mycomb[2,jj]]]]]
-
-
-
-      myloadings[[1]]=as.data.frame(scale(hatalpha[[mycomb[1,jj]]][col1[1:keep.loadings[[mycomb[1,jj]]]],],center=FALSE,scale=FALSE))
-      myloadings[[2]]=as.data.frame(scale(hatalpha[[mycomb[2,jj]]][col2[1:keep.loadings[[mycomb[2,jj]]]],],center=FALSE,scale=FALSE))
-
-
-    }else if(is.null(keep.loadings)){
-      X1var.Ind=which(as.matrix(hatalpha1)!=0, arr.ind = TRUE)
-      X1var.Ind=X1var.Ind[,1]
-      X2var.Ind=which(as.matrix(hatalpha2)!=0, arr.ind = TRUE)
-      X2var.Ind=X2var.Ind[,1]
-      var1.names=sub("\\;.*", "", colnames(X1[,X1var.Ind]))
-      var2.names=sub("\\;.*", "", colnames(X2[,X2var.Ind]))
-
-      myloadings[[1]]=as.data.frame(scale(hatalpha[[mycomb[1,jj]]][X1var.Ind,],center=FALSE, scale=FALSE))
-      myloadings[[2]]=as.data.frame(scale(hatalpha[[mycomb[2,jj]]][X2var.Ind,],center=FALSE,scale=FALSE))
-
-    }
-
-    if(length(intersect(var1.names,var2.names))!=0){
-      var1.names <- paste(var1.names,mycomb[1,jj],sep="_")
-      var2.names <- paste(var2.names,mycomb[2,jj],sep="_")
-    }
-
-    U=scale(as.matrix(X1))%*%hatalpha[[mycomb[1,jj]]]
-    V=scale(as.matrix(X2))%*%hatalpha[[mycomb[2,jj]]]
-    Z=U+V
-    Scores=cbind.data.frame(Y,Z)
-
-    if(keep.loadings[[mycomb[1,jj]]]==1){
-      myloadings[[1]]=as.data.frame(t(myloadings[[1]]))
-    }
-
-    if(keep.loadings[[mycomb[2,jj]]]==1){
-      myloadings[[2]]=as.data.frame(t(myloadings[[2]]))
-    }
-
-    mxmax=max(abs(Scores[,2]))+25
-    mymax=max(abs(Scores[,3]))+25
-
-    print(
-      ggplot2::ggplot() +
-        geom_point(data = Scores[,-1], aes(shape=Classes,x = Scores[,2], y = Scores[,3], colour = Classes),size=4) +
-        stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),type = "norm", geom = "polygon", alpha = 0.1)+
-        geom_segment(data = myloadings[[1]][,1:2], aes(x=0, y=0, xend=mxmax*myloadings[[1]][,1], yend=mymax*myloadings[[1]][,2],                                                       ),
-                     linewidth=1,
-                     arrow=arrow(length=unit(0.3, "cm")), color = "black") +
-        geom_text(data = myloadings[[1]], aes(x=mxmax*myloadings[[1]][,1], y=mymax*myloadings[[1]][,2], label = var1.names),
-                  size = 4, hjust = "outward", vjust = "outward") +
-        geom_segment(data = myloadings[[2]][,1:2], aes(x=0, y=0, xend=mxmax*myloadings[[2]][,1], yend=mymax*myloadings[[2]][,2],
-                                                       ),
-                     linewidth=2,linetype=2,
-                     arrow=arrow(length=unit(0.3, "cm")), color = "red") +
-        geom_text(data = myloadings[[2]], aes(x=mxmax*myloadings[[2]][,1], y=mymax*myloadings[[2]][,2],
-                                              label = var2.names),
-                  size = 4, hjust = "outward", vjust = "outward") +
-        scale_y_continuous(sec.axis = sec_axis(~./26)) +
-        scale_colour_manual(values=color.palette) +
-        scale_fill_manual(values = color.palette) +
-        # scale_linetype_manual("view1", values=c("view1"=2))+
-        # scale_linetype_manual("view2", values=c("view1"=1))+
-        # xlab(paste(
-        #   "First Discriminant Score")) +
-        # ylab(paste("Second Discriminant Score")) +
-        xlab(
-          if(class(object)=="SIDA" | class(object)=="SIDANet"){
-            paste(
-              "First Discriminant Score")
-          }else if(class(object)=="SELPCCA"){
-            paste("First Canonical Variate")
-          }
-        ) +
-        ylab(
-          if(class(object)=="SIDA" | class(object)=="SIDANet"){
-            paste(
-              "Second Discriminant Score")
-          }else if(class(object)=="SELPCCA"){
-            paste("Second Canonical Variate")
-          }
-          #paste("Second Discriminant Score for View ", jj)
-        ) +
-        ggtitle(
-          if(class(object)=="SIDA" | class(object)=="SIDANet"){
-            paste("SIDA Biplot for Views ",mycomb[1,jj], "and", mycomb[2,jj])
-          }else if(class(object)=="SELPCCA"){
-            paste("SELPCCA Biplot for Views ",mycomb[1,jj], "and", mycomb[2,jj])
-          }
-        )+
-        theme_bw() +
-        theme(axis.line = element_line(colour = "black"),
-              panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank()) +
-        geom_vline(xintercept = 0, color = "darkgrey") +
-        geom_hline(yintercept = 0, color = "darkgrey") +
-        ggthemes::theme_stata(scheme="s2manual")+
-       # xlim(min(Scores[,2])-15,max(Scores[,2])+15)
-      xlim(min(Scores[,2])-5,max(Scores[,2])+5)
-    )
-    Sys.sleep(2)
-
   }
+  
+  if (is.null(keep.loadings)){
+    warning("keep.loadings not specified, keeping all possible")
+    keep.loadings = sapply(hatalpha,
+                           FUN = function(x){
+                             sum(rowSums(abs(x)) != 0)
+                           })
+  }
+  
+  plots = lapply(1:dim(mycomb)[2],
+                 FUN = function(jj){
+                   X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
+                   X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
+                   
+                   if(is.null(Xtest)){
+                     if(length(Y)!=dim(X1)[1]){
+                       stop('size of Y must be the same as X')
+                     }
+                     X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
+                     X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
+                   }else if(!is.null(Xtest)){
+                     Xtest[[jj]]=as.data.frame(Xtest[[jj]])
+                     if(length(Y)==dim(Xtest[[jj]])[1]){
+                       X1=as.data.frame(Xtest[[mycomb[1,jj]]])
+                       X2=as.data.frame(Xtest[[mycomb[2,jj]]])
+                     }else{
+                       X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
+                       X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
+                     }
+                   }
+                   
+                   hatalpha1=rowSums(abs(hatalpha[[mycomb[1,jj]]]))
+                   col1=order(hatalpha1,decreasing=TRUE)
+                   hatalpha2=rowSums(abs(hatalpha[[mycomb[2,jj]]]))
+                   col2=order(hatalpha2,decreasing=TRUE)
+                   
+                   
+                   if(!is.null(keep.loadings)){
+                     if(keep.loadings[[mycomb[1,jj]]]>sum(hatalpha1!=0)){
+                       warning("keep.loadings is greater than maximum number of variables selected, setting to this maximum")
+                       keep.loadings[[mycomb[1,jj]]]=sum(hatalpha1!=0)
+                     }
+                     
+                     if(keep.loadings[[mycomb[2,jj]]]>sum(hatalpha2!=0)){
+                       warning("keep.loadings is greater than maximum number of variables selected, setting to this maximum")
+                       keep.loadings[[mycomb[2,jj]]]=sum(hatalpha2!=0)
+                     }
+                     #for one view
+                     mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[mycomb[1,jj]]])))
+                     var1.names <- mycolnames[col1[1:keep.loadings[[mycomb[1,jj]]]]]
+                     #for another view
+                     mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[mycomb[2,jj]]])))
+                     var2.names <- mycolnames[col2[1:keep.loadings[[mycomb[2,jj]]]]]
+                     
+                     myloadings[[1]]=as.data.frame(scale(hatalpha[[mycomb[1,jj]]][col1[1:keep.loadings[[mycomb[1,jj]]]],],center=FALSE,scale=FALSE))
+                     myloadings[[2]]=as.data.frame(scale(hatalpha[[mycomb[2,jj]]][col2[1:keep.loadings[[mycomb[2,jj]]]],],center=FALSE,scale=FALSE))
+                   }
+                   
+                   if(length(intersect(var1.names,var2.names))!=0){
+                     var1.names <- paste(var1.names,mycomb[1,jj],sep="_")
+                     var2.names <- paste(var2.names,mycomb[2,jj],sep="_")
+                   }
+                   
+                   U=scale(as.matrix(X1))%*%hatalpha[[mycomb[1,jj]]]
+                   V=scale(as.matrix(X2))%*%hatalpha[[mycomb[2,jj]]]
+                   Z=U+V
+                   Scores=cbind.data.frame(Y,Z)
+                   
+                   if(keep.loadings[[mycomb[1,jj]]]==1){
+                     myloadings[[1]]=as.data.frame(t(myloadings[[1]]))
+                   }
+                   
+                   if(keep.loadings[[mycomb[2,jj]]]==1){
+                     myloadings[[2]]=as.data.frame(t(myloadings[[2]]))
+                   }
+                   
+                   mxmax=max(abs(Scores[,2]))+25
+                   mymax=max(abs(Scores[,3]))+25
+                   
 
-  return(invisible(list(var1names=var1.names, var2names=var2.names)))
+                   ggplot2::ggplot() +
+                       geom_point(data = Scores[,-1], aes(shape=Classes,x = Scores[,2], y = Scores[,3], colour = Classes),size=4) +
+                       stat_ellipse(aes(Scores[,2], Scores[,3], color=Classes, fill = Classes),type = "norm", geom = "polygon", alpha = 0.1)+
+                       geom_segment(data = myloadings[[1]][,1:2], aes(x=0, y=0, xend=mxmax*myloadings[[1]][,1], yend=mymax*myloadings[[1]][,2],                                                       ),
+                                    linewidth=1,
+                                    arrow=arrow(length=unit(0.3, "cm")), color = "black") +
+                       geom_text(data = myloadings[[1]], aes(x=mxmax*myloadings[[1]][,1], y=mymax*myloadings[[1]][,2], label = var1.names),
+                                 size = 4, hjust = "outward", vjust = "outward") +
+                       geom_segment(data = myloadings[[2]][,1:2], aes(x=0, y=0, xend=mxmax*myloadings[[2]][,1], yend=mymax*myloadings[[2]][,2],
+                       ),
+                       linewidth=2,linetype=2,
+                       arrow=arrow(length=unit(0.3, "cm")), color = "red") +
+                       geom_text(data = myloadings[[2]], aes(x=mxmax*myloadings[[2]][,1], y=mymax*myloadings[[2]][,2],
+                                                             label = var2.names),
+                                 size = 4, hjust = "outward", vjust = "outward") +
+                       scale_y_continuous(sec.axis = sec_axis(~./26)) +
+                       scale_colour_manual(values=color.palette) +
+                       scale_fill_manual(values = color.palette) +
+                       xlab(
+                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                           paste(
+                             "First Discriminant Score")
+                         }else if(class(object)=="SELPCCA"){
+                           paste("First Canonical Variate")
+                         }
+                       ) +
+                       ylab(
+                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                           paste(
+                             "Second Discriminant Score")
+                         }else if(class(object)=="SELPCCA"){
+                           paste("Second Canonical Variate")
+                         }
+                         #paste("Second Discriminant Score for View ", jj)
+                       ) +
+                       ggtitle(
+                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                           paste("SIDA Biplot for Views ",mycomb[1,jj], "and", mycomb[2,jj])
+                         }else if(class(object)=="SELPCCA"){
+                           paste("SELPCCA Biplot for Views ",mycomb[1,jj], "and", mycomb[2,jj])
+                         }
+                       )+
+                       theme_bw() +
+                       theme(axis.line = element_line(colour = "black"),
+                             panel.grid.major = element_blank(),
+                             panel.grid.minor = element_blank()) +
+                       geom_vline(xintercept = 0, color = "darkgrey") +
+                       geom_hline(yintercept = 0, color = "darkgrey") +
+                       ggthemes::theme_stata(scheme="s2manual")+
+                       xlim(min(Scores[,2])-5,max(Scores[,2])+5)
+
+                 })
+  if (plotIt){
+    if (length(plots) == 1){
+      print(plots[[1]])
+    }else{
+      gridExtra::grid.arrange(grobs = plots)
+    }
+    return()
+  }
+  plots
 }
 
 
