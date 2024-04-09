@@ -1,27 +1,4 @@
 
-#' @title Variable Importance Plot
-#'
-#' @description Wrapper function to visualize loadings for variables selected
-#' by SIDA, SIDANet, and SELPCCA methods.
-#'
-#' @param object the output from SIDA, SIDANet, and SELPCCA methods
-#'
-#' @return A graph of the absolute loadings for variables selected. The variables
-#' are normalized to the variable with the largest weight.
-#'
-#' @export
-#'
-#' @examples
-#' ##---- load SIDA data
-#' data("sidaData")
-#' Xdata <- sidaData[[1]]
-#' Y <- sidaData[[2]]
-#' Xtestdata <- sidaData[[3]]
-#' Ytest <- sidaData[[4]]
-#' ##---- call cross validation
-#' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
-#' ##----  Obtain variable importance plot
-#' VarImportancePlot(mycv)
 
 #############################################################################################################
 # Authors:
@@ -47,26 +24,113 @@
 #############################################################################################################
 
 
-VarImportancePlot <- function(object){
-  if(class(object)=="SIDA" | class(object)=="SIDANet"){
+#' @title Variable Importance Plot
+#'
+#' @description Wrapper function to visualize loadings for variables selected
+#' by SIDA, SIDANet, and SELPCCA methods.
+#'
+#' @param fit the output from cvSIDA, cvSIDANet, or cvselpcca methods
+#' @param max.loadings the maximum number of variables to show per view (default = 20)
+#' @param plotIt boolean; if TRUE shows the plots, otherwise returns them as a list of ggplots
+#'
+#' @return A graph of the absolute loadings for variables selected. The variables
+#' are normalized to the variable with the largest weight.
+#'
+#' @export
+#'
+#' @examples
+#' ##---- load SIDA data
+#' data("sidaData")
+#' Xdata <- sidaData[[1]]
+#' Y <- sidaData[[2]]
+#' Xtestdata <- sidaData[[3]]
+#' Ytest <- sidaData[[4]]
+#' ##---- call cross validation
+#' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+#' ##----  Obtain variable importance plot
+#' VarImportancePlot(mycv, max.loadings = 15)
+VarImportancePlot <- function(fit, max.loadings = 20, plotIt = TRUE){
+ loadings = VarImportance(fit)
+ plots = lapply(unique(loadings$View),
+                FUN = function(view){
+                  loadings %>%
+                    dplyr::filter(View == view) %>%
+                    dplyr::filter(abs(`Normalized Relative Importance`) > 0) %>%
+                    dplyr::slice_max(`Normalized Relative Importance`,
+                                     n = max.loadings) %>%
+                    mutate(`Variable Name` = factor(`Variable Name`,
+                                                    levels = (
+                                                      `Variable Name`[order(`Normalized Relative Importance`)]
+                                                    ))) %>%
+                    ggplot(aes(x = `Variable Name`,
+                               y = `Normalized Relative Importance`))+
+                    geom_bar(stat="identity", fill="#7A0019")+ 
+                    theme_bw()+ 
+                    theme(legend.position="none")+
+                    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))+
+                    coord_flip()+ 
+                    ylab("Normalized relative importance")+ 
+                    xlab('')+
+                    theme(axis.title = element_text(face="bold"))+
+                    theme(axis.text = element_text(face="bold"))+
+                    ggtitle(ifelse(class(fit) == "SELP",
+                                   paste0("Variable importance for View ", view, " CCA Vector 1"),
+                                   paste0("Variable importance for View ", view)))
+                    
+                })
+ if (plotIt){
+   if (length(plots) == 1){
+     print(plots[[1]])
+   }else{
+     gridExtra::grid.arrange(grobs = plots)
+   }
+   return()
+ }
+ plots
+}
+
+#' @title Variable Importance Table
+#'
+#' @description returns Variable Importance tables for SIDA, SIDANet, or SELPCCA
+#'
+#' @param fit the output from cvSIDA, cvSIDANet, or cvselpcca methods 
+#'
+#' @return A dataframe of the absolute loadings for variables selected. The variables
+#' are normalized to the variable with the largest weight.
+#'
+#' @export
+#'
+#' @examples
+#' ##---- load SIDA data
+#' data("sidaData")
+#' Xdata <- sidaData[[1]]
+#' Y <- sidaData[[2]]
+#' Xtestdata <- sidaData[[3]]
+#' Ytest <- sidaData[[4]]
+#' ##---- call cross validation
+#' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+#' ##----  Obtain variable importance plot
+#' VarImportance(mycv)
+VarImportance <- function(fit){
+  if(class(fit)=="SIDA" | class(fit)=="SIDANet"){
     method="SIDA"
-    myobject=object
-
-    hatalpha=object$hatalpha
-    k <- length(object$hatalpha)
+    myfit=fit
+    
+    hatalpha=fit$hatalpha
+    k <- length(fit$hatalpha)
     mysum=matrix(NA,nrow=k,ncol=1)
-
+    
     hatalpha.temp=list()
     for(i in 1:k){
       if(dim(hatalpha[[i]])[2] == 1){
-         mysum[i,1]=sum(hatalpha[[i]]!=0)
+        mysum[i,1]=sum(hatalpha[[i]]!=0)
       }else if (dim(hatalpha[[i]])[2] >1){
-          hatalpha.temp[[i]]=rowSums(abs(hatalpha[[i]]))
-          mysum[i,1]=sum(hatalpha.temp[[i]]!=0)
+        hatalpha.temp[[i]]=rowSums(abs(hatalpha[[i]]))
+        mysum[i,1]=sum(hatalpha.temp[[i]]!=0)
       }
     }
     topk=min(20,min(mysum))
-
+    
     dfView =list()
     hatalpha.temp=list()
     df=list()
@@ -74,7 +138,7 @@ VarImportancePlot <- function(object){
       if(dim(hatalpha[[i]])[2] > 1){
         hatalpha.temp[[i]]=rowMeans(abs(hatalpha[[i]]))
         col1<-order(abs(hatalpha.temp[[i]]), decreasing = T)
-        mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[i]])))
+        mycolnames=sub("\\;.*", "", colnames(as.data.frame(fit$InputData[[i]])))
         col1name <- data.frame(mycolnames[col1])
         col3 <- hatalpha.temp[[i]][col1]
         col4 <- col3/col3[1]
@@ -84,13 +148,12 @@ VarImportancePlot <- function(object){
         # df <- rbind.data.frame(df, cbind.data.frame(i, col1name,   col3, col4))
         # df2 <- as.data.frame(df)
         colnames(df2) <- c("View", "Variable Name",
-                            "Mean Loading",
+                           "Mean Loading",
                            "Normalized Relative Importance")
         dfView[[i]] <- cbind.data.frame(df2[,1:2],round(df2[,c(3:4)],3))
-        print(dfView[[i]][1:topk,])
       }else if(dim(hatalpha[[i]])[2] ==1){
         col1<-order(abs(hatalpha[[i]]), decreasing = T)
-        mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[i]])))
+        mycolnames=sub("\\;.*", "", colnames(as.data.frame(fit$InputData[[i]])))
         col1name <- data.frame(mycolnames[col1])
         col2=hatalpha[[i]][col1]
         col3 <- abs(hatalpha[[i]][col1])
@@ -102,134 +165,62 @@ VarImportancePlot <- function(object){
                            "Loading", "Absolute Loading",
                            "Normalized Relative Importance")
         dfView[[i]] <- cbind.data.frame(df2[,1:2],round(df2[,c(3:5)],3))
-        print(dfView[[i]][1:topk,])
       }
-
+      
     }
-      # #graph.dat[[i]]$abs_val <- rowMeans(abs(graph.dat[[i]]$val))
-      # graph.dat[[i]]$nri <- graph.dat[[i]]$abs_val/graph.dat[[i]]$abs_val[1]
-      # colnames(graph.dat[[i]])[1]="name"
-      # df <- NULL
-      # col1 <- order(abs(object$hatalpha[[i]]), decreasing = T)
-      # col2 <- object$hatalpha[[i]][col1]
-      # col1name=colnames(object$InputData[[i]])[col1]
-      # col3 <- abs(col2)
-      # col4 <- col3/col3[1]
-      # #df <- rbind(df, cbind(i, col1, col2, col3, col4))
-
-      # df <- rbind.data.frame(df, cbind.data.frame(i, col1name, col2, col3, col4))
-      # df2 <- as.data.frame(df)
-      # colnames(df2) <- c("View", "Variable Name",
-      #                    "Loading", "Absolute Loading",
-      #                    "Normalized Relative Importance")
-      # dfView[[i]] <- cbind.data.frame(df2[,1:2],round(df2[,c(3:5)],3))
-      # print(dfView[[i]][topk:1,])
-      # print(length(df))
-      # df2 <- do.call(rbind.data.frame,df)
-      # print(df2[1:200,])
-      # colnames(df2) <- c("View", "Variable Name",
-      #                    "Loading", "Absolute Loading",
-      #                    "Normalized Relative Importance")
-      # dfView <- cbind.data.frame(df2[,1:2],round(df2[,c(3:5)],3))
-      # print(dfView[1:topk,])
-
-
-
-    # df <- as.data.frame(df)
-    # names(df) <- c("View", "Variable Name",
-    #                "Loading", "Absolute Loading",
-    #                "Normalized Relative Importance")
-    # df <- round(df,3)
-    # df
-
-    # df2 <- as.data.frame(df)
-    # colnames(df2) <- c("View", "Variable Name",
-    #                    "Loading", "Absolute Loading",
-    #                    "Normalized Relative Importance")
-    # dfView <- cbind.data.frame(df2[,1:2],round(df2[,c(3:5)],3))
-    # print(dfView[1:20,])
-
-    #print(df)
-
-
-
-    #get graphs
-    print(vimp(myobject,method))
-
-    result=list(dfView)
-
-  }else if(class(object)=="SELP-Predict"|class(object)=="SELPCCA"){
+  }else if(class(fit)=="SELP-Predict"|class(fit)=="SELPCCA"){
     method="SELP"
-    if(object$method=="cvselpscca"|object$method=="multiplescca"){
-      myobject=object
-      k=ncol(object$hatalpha)
-      #col1 <- order(abs(object$hatalpha[,i]), decreasing = T)
-      #col2 <- object$hatalpha[,i][col1]
-    }else if(object$method=="selpscca.pred"){
-      myobject=object$selp.fit
-      k <- ncol(object$selp.fit$hatalpha)
-      #col1 <- order(abs(object$selp.fit$hatalpha[,i]), decreasing = T)
-      #col2 <- object$selp.fit$hatalpha[,i][col1]
-  }
+    if(fit$method=="cvselpscca"|fit$method=="multiplescca"){
+      myfit=fit
+      k=ncol(fit$hatalpha)
+    }else if(fit$method=="selpscca.pred"){
+      myfit=fit$selp.fit
+      k <- ncol(fit$selp.fit$hatalpha)
+    }
     df <- NULL
     for(i in 1:k){
-
-      if(object$method=="cvselpscca"|object$method=="multiplescca"){
-        col1 <- order(abs(object$hatalpha[,i]), decreasing = T)
-        col2 <- object$hatalpha[,i][col1]
-      }else if(object$method=="selpscca.pred"){
-        col1 <- order(abs(object$selp.fit$hatalpha[,i]), decreasing = T)
-        col2 <- object$selp.fit$hatalpha[,i][col1]
+      
+      if(fit$method=="cvselpscca"|fit$method=="multiplescca"){
+        col1 <- order(abs(fit$hatalpha[,i]), decreasing = T)
+        col2 <- fit$hatalpha[,i][col1]
+      }else if(fit$method=="selpscca.pred"){
+        col1 <- order(abs(fit$selp.fit$hatalpha[,i]), decreasing = T)
+        col2 <- fit$selp.fit$hatalpha[,i][col1]
       }
-
-      #col1 <- order(abs(object$selp.fit$hatalpha[,i]), decreasing = T)
-      col1name=colnames(as.data.frame(object$InputData[[1]]))[col1]
-      #print(col1name[1:5])
-      #col2 <- object$selp.fit$hatalpha[,i][col1]
+      
+      col1name=colnames(as.data.frame(fit$InputData[[1]]))[col1]
       col3 <- abs(col2)
       col4 <- col3/col3[1]
       df <- rbind.data.frame(df, cbind.data.frame(i, col1name, col2, col3, col4))
-
-
+      
+      
     }
     df2 <- as.data.frame(df)
-        colnames(df2) <- c("View 1 Canonical Correlation Vector", "Variable Name",
-                   "Loading", "Absolute Loading",
-                   "Normalized Relative Importance")
+    colnames(df2) <- c("View 1 Canonical Correlation Vector", "Variable Name",
+                       "Loading", "Absolute Loading",
+                       "Normalized Relative Importance")
     dfView1 <- cbind.data.frame(df2[,1:2],round(df2[,c(3:5)],3))
     for(j in 1:k){
       ithcomp=dfView1[dfView1[,1]==j,]
-      print(ithcomp[1:10,])
     }
-
-    #print(dfView1[1:20,])
-
-    if(object$method=="cvselpscca"|object$method=="multiplescca"){
-      k=ncol(object$hatbeta)
-      #col1 <- order(abs(object$hatbeta[,i]), decreasing = T)
-      #col2 <- object$hatbeta[,i][col1]
-    }else if(object$method=="selpscca.pred"){
-      k <- ncol(object$selp.fit$hatbeta)
-      #col1 <- order(abs(object$selp.fit$hatbeta[,i]), decreasing = T)
-      #col2 <- object$selp.fit$hatbeta[,i][col1]
+    if(fit$method=="cvselpscca"|fit$method=="multiplescca"){
+      k=ncol(fit$hatbeta)
+    }else if(fit$method=="selpscca.pred"){
+      k <- ncol(fit$selp.fit$hatbeta)
     }
     df <- NULL
     for(i in 1:k){
-
-      if(object$method=="cvselpscca"|object$method=="multiplescca"){
-        #k=object$hatbeta
-        col1 <- order(abs(object$hatbeta[,i]), decreasing = T)
-        col2 <- object$hatbeta[,i][col1]
-      }else if(object$method=="selpscca.pred"){
-        #k <- ncol(object$selp.fit$hatbeta)
-        col1 <- order(abs(object$selp.fit$hatbeta[,i]), decreasing = T)
-        col2 <- object$selp.fit$hatbeta[,i][col1]
+      
+      if(fit$method=="cvselpscca"|fit$method=="multiplescca"){
+        col1 <- order(abs(fit$hatbeta[,i]), decreasing = T)
+        col2 <- fit$hatbeta[,i][col1]
+      }else if(fit$method=="selpscca.pred"){
+        col1 <- order(abs(fit$selp.fit$hatbeta[,i]), decreasing = T)
+        col2 <- fit$selp.fit$hatbeta[,i][col1]
       }
-
-      #col1 <- order(abs(object$selp.fit$hatbeta[,i]), decreasing = T)
-      col1name=colnames(as.data.frame(object$InputData[[2]]))[col1]
-      #print(col1name[1:5])
-      #col2 <- object$selp.fit$hatbeta[,i][col1]
+      
+      col1name=colnames(as.data.frame(fit$InputData[[2]]))[col1]
+      
       col3 <- abs(col2)
       col4 <- col3/col3[1]
       df <- rbind.data.frame(df, cbind.data.frame(i, col1name, col2, col3, col4))
@@ -239,21 +230,22 @@ VarImportancePlot <- function(object){
                        "Loading", "Absolute Loading",
                        "Normalized Relative Importance")
     dfView2 <- cbind.data.frame(df2[,1:2],round(df2[,c(3:5)],3))
-
+    
     for(j in 1:k){
       ithcomp=dfView2[dfView2[,1]==j,]
-      print(ithcomp[1:10,])
     }
-    #print(dfView2[1:20,])
 
-
-    #get graphs
-    print(vimp(myobject,method))
-
-    result=list(dfView1,dfView2)
-    return(invisible(result))
+    dfView=list(dfView1,dfView2)
   }
+  result = data.frame()
+  for (i in 1:length(dfView)){
+    result = rbind(result, dfView[[i]])
+  }
+  return(result)
 }
+
+
+
 
 
 #' @title Network visualization of selected variables from integrative analysis methods
