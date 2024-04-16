@@ -98,6 +98,17 @@ test_that("LoadingsPlots throws error on SIDA data with 1 discriminant vector", 
     })
 })
 
+test_that("Loadings returns a dataframe with four columns and 131 rows on sidanet e.g. data", {
+  expect_equal({
+    load("../../data/sida_and_sidanet_vignette_models.Rdata")
+    sidanet_fit = mycvsidanet
+    x = Loadings(sidanet_fit)
+    c(class(x), ncol(x), nrow(x))
+  },
+  c("data.frame", "4", "131"))
+})
+
+
 ### WithinviewBiplots
 test_that("WithinViewBiplot returns a list of two ggplots objects on sidanet eg", {
   expect_equal({

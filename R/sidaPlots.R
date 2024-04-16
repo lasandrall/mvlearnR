@@ -350,101 +350,50 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
 #'                      Ytest=Ytest)
 #'LoadingsPlots(mycvsidanet,keep.loadings=c(3,3))
 
-LoadingsPlots=function(object,color.line="darkgray",
+LoadingsPlots=function(fit,color.line="darkgray",
                        keep.loadings=NULL, plotIt = TRUE){
-  if(class(object)=="SIDA" | class(object)=="SIDANet"){
-    hatalpha=object$hatalpha
-  }else if( class(object)=="SELPCCA"){
-
-    if(object$method=="selpscca.pred"){
-      #L=dim(hatalpha[[1]])[2]
-      hatalpha=list(object$selp.fit$hatalpha,object$selp.fit$hatbeta)
-      L=length(hatalpha)
-      for(j in 1:L){
-        hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
-      }
-    }else{ hatalpha=list(object$hatalpha,object$hatbeta)
-    #L=dim(hatalpha[[1]])[2]
-    L=length(hatalpha)
-    for(j in 1:L){
-      hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
-    }}
-  }
-
-  if(is.null(color.line)){
-    color.line="darkgray"
-  }
-
-  D <- length(hatalpha)
-  L=dim(hatalpha[[1]])[2]
-  ncomp=dim(hatalpha[[1]])[2]
-  
-  if(ncomp == 1){
-    if(class(object)=="SIDA" | class(object)=="SIDANet"){
-      stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
-    }else if(class(object)=="SELPCCA"){
-      stop("Loadings plot not applicable with one CCA vector " , call. = FALSE)
-    }
-  }
+  loadings = Loadings(fit)
   
   if (is.null(keep.loadings)){
     warning("keep.loadings not specified, keeping all possible")
-    keep.loadings = sapply(hatalpha,
+    keep.loadings = sapply(unique(loadings$View),
                             FUN = function(x){
-                              sum(rowSums(abs(x)) != 0)
+                              sum(rowSums(abs(loadings[loadings$View == x,
+                                                       c(1,2)])) != 0)
                             })
   }
-
-  plots = lapply(1:D,
+  plots = lapply(unique(loadings$View),
                  FUN = function(jj){
-                   X1=as.data.frame(object$InputData[[jj]])
-
-                   hatalpha1=rowSums(abs(hatalpha[[jj]]))
-                   hatalpha2=hatalpha1[order(hatalpha1,decreasing=TRUE)]
-                   col1=order(hatalpha1,decreasing=TRUE)
-                   
-                   X1var.Ind=which(as.matrix(hatalpha1)!=0, arr.ind = TRUE)
-                   
-
-                   if(keep.loadings[jj]>sum(hatalpha1!=0)){
-                     warning("keep.loadings is greater than maximum number of variables selected, setting to this maximum")
-                     keep.loadings[jj]=sum(hatalpha1!=0)
-                   }
-                   myloadings=as.data.frame(scale(hatalpha[[jj]][col1[1:keep.loadings[jj]],],center=FALSE, scale=FALSE))
-                   X1var.ind=colnames(X1)[col1[1:keep.loadings[jj]]]
-                   var.names=sub("\\;.*", "", X1var.ind)
-
-                   
-                   if(keep.loadings[jj]==1){
-                       myloadings=as.data.frame(t(scale(myloadings,center=FALSE,scale=FALSE)))
-                     }
-                   
-                     ggplot2::ggplot(myloadings, aes(myloadings[,1], myloadings[,2])) +
-                       geom_text(aes(label = var.names), size = 4) +
-                       geom_segment(data = myloadings[,1:2], aes(x=0, y=0, xend=myloadings[,1], yend=myloadings[,2]),
-                                    linewidth=1,
-                                    arrow=arrow(length=unit(0.3, "cm")), color = color.line) +
-                       xlab(
-                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
-                           paste("First Discriminant Vector for View", jj)
-                         }else if(class(object)=="SELPCCA"){
-                           paste("First Canonical Vector for View", jj)
-                         }
-                       ) +
-                       ylab(if(class(object)=="SIDA" | class(object)=="SIDANet"){
-                         paste("Second Discriminant Vector for View", jj)
-                       }else if(class(object)=="SELPCCA"){
-                         paste("Second Canonical Vector for View", jj)
-                       }
-                       ) +
-                       ggtitle("Loading Plot for View", jj) + theme_bw() +
-                       theme(axis.line = element_line(colour = "black"),
-                             panel.grid.major = element_blank(),
-                             panel.grid.minor = element_blank()) +
-                       geom_vline(xintercept = 0, color = "darkgrey") +
-                       geom_hline(yintercept = 0, color = "darkgrey")+
-                       ggthemes::theme_stata(scheme="s2manual")+
-                       xlim(-1,1)
+                   xlab = ifelse(class(fit) %in% c("SIDA", "SIDANet"),
+                                 paste("First Discriminant Vector for View", jj),
+                                 paste("First Canonical Vector for View", jj))
+                   ylab = ifelse(class(fit) %in% c("SIDA", "SIDANet"),
+                                 paste("Second Discriminant Vector for View", jj),
+                                 paste("Second Canonical Vector for View", jj))
+                   title = paste("Loading Plot for View", jj)
+                   loadings %>%
+                     dplyr::filter(View == jj) %>%
+                     dplyr::slice_head(n = keep.loadings[jj]) %>%
+                     ggplot2::ggplot(aes(x = 0,
+                                         xend = Loadings1, 
+                                         y = 0,
+                                         yend = Loadings2,
+                                         label = Variable))+
+                     geom_text(size = 4, aes(x = Loadings1,
+                                             y = Loadings2)) +
+                     geom_segment(linewidth=1,
+                                  arrow=arrow(length=unit(0.3, "cm")), color = color.line) +
+                     labs(x = xlab,
+                          y = ylab,
+                          title = title)+
+                     theme_bw() +
+                     theme(axis.line = element_line(colour = "black"),
+                           panel.grid.major = element_blank(),
+                           panel.grid.minor = element_blank()) +
+                     geom_vline(xintercept = 0, color = "darkgrey") +
+                     geom_hline(yintercept = 0, color = "darkgrey")+
+                     ggthemes::theme_stata(scheme="s2manual")+
+                     xlim(-1,1)
                  })
   if (plotIt){
     if (length(plots) == 1){
@@ -457,7 +406,65 @@ LoadingsPlots=function(object,color.line="darkgray",
   plots
 }
 
-
+#' @title Loadings 
+#'
+#' @description function to get loadings for variables selected
+#' by SIDA, SIDANet, and SELPCCA methods.
+#'
+#' @param fit the output from cvSIDA, cvSIDANet, or cvselpcca methods
+#'
+#' @return A data.frame with three columns. The first two columns are the non-zero loadings
+#' The last column is the View from which the loadings were obtained. 
+#'
+#' @export
+Loadings = function(fit){
+  if(class(fit) %in% c("SIDA", "SIDANet")){
+    hatalpha=fit$hatalpha
+  }else if( class(fit)=="SELPCCA"){
+    # selpcca needs conversion of hatalpha to loadings
+    if(fit$method=="selpscca.pred"){
+      #L=dim(hatalpha[[1]])[2]
+      hatalpha=list(fit$selp.fit$hatalpha,
+                    fit$selp.fit$hatbeta)
+      L=length(hatalpha)
+      for(j in 1:L){
+        hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
+      }
+    }else{ hatalpha=list(object$hatalpha,object$hatbeta)
+    L=length(hatalpha)
+    for(j in 1:L){
+      hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
+    }}
+  }
+  
+  ncomp=dim(hatalpha[[1]])[2]
+  
+  if(ncomp == 1){
+    if(class(fit) %in% c("SIDA", "SIDANet")){
+      stop("Loadings not applicable with one discriminant vector" , call. = FALSE)
+    }else if(class(fit)=="SELPCCA"){
+      stop("Loadings not applicable with one CCA vector " , call. = FALSE)
+    }
+  }
+  # the loadings are basically just the non-zero hatalpha. 
+  # here we grab them, rbind them by View, and sort them by absolute value,
+  # then toss the zeros s
+  loadings = lapply(1:length(hatalpha),
+                    FUN = function(jj){
+                      loadings=as.data.frame(scale(hatalpha[[jj]],center=FALSE, scale=FALSE))
+                      row.names(loadings) = colnames(fit$InputData[[jj]])
+                      loading_order=order(rowSums(abs(hatalpha[[jj]])),
+                                          decreasing = TRUE)
+                      loadings = loadings[loading_order, ]
+                      loadings = loadings[rowSums(abs(loadings)) > 0,]
+                      colnames(loadings) = c("Loadings1","Loadings2")
+                      loadings$View = jj
+                      loadings$Variable = row.names(loadings)
+                      loadings
+                    }) %>%
+    do.call("rbind", .)
+  loadings
+}
 
 
 #' @title Biplots for Discriminant Scores or Canonical Correlation Variates for each View
