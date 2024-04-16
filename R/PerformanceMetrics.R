@@ -190,7 +190,7 @@ PerformanceMetricsPlot = function(Y.pred, Y.test, family = "binomial"){
   }
   
   if (family == "binomial"){
-    ROCit_obj <- ROCit::rocit(score=Y.pred,class=Y.train)
+    ROCit_obj <- ROCit::rocit(score=Y.pred,class=Y.test)
     maxIndex <- which.max(ROCit_obj$TPR - ROCit_obj$FPR)
     FPR <- 1 - ROCit_obj$FPR[maxIndex]
     TPR <- ROCit_obj$TPR[maxIndex]
