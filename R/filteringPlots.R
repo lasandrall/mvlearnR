@@ -4,7 +4,7 @@
 #' supervised filtering. See "umap" R package for more details on the
 #' method.
 #'
-#' @param filtering_fit the output from the filter.supervised() function
+#' @param fit the output from the filter.supervised() function
 #' @param filteredData Boolean on whether to plot UMAP on filtered or original data.
 #' Default is filtered data.
 #'
@@ -28,54 +28,55 @@
 #'
 #' ##-----Plot Result via UMAP
 #' umapPlot(data.red)
-umapPlot <- function(object,filteredData=TRUE){
+umapPlot <- function(fit,
+                     useFilteredData=TRUE,
+                     usePrincipleComponents = TRUE,
+                     plotIt = TRUE){
   view.pca<-view.umap<-list()
   ##If supervised with binary/categorical outcome, plot 2 UMAPs
   #plot 1 = UMAP on filtered data
   #Seems Y has to be numeric
   
-  for(i in 1:length(object$X)){
-    
-    if(filteredData==FALSE){
-      mydata=object$X_Original[[i]]
-    }else{
-      mydata=object$X[[i]]
-    }
-    
-    view.umap[[i]] <- umap(cbind(mydata, object$Y))
-    
-    #PCA
-    t1 <- prcomp(mydata, rank.=10)
-    view.pca[[i]] <- umap(cbind(t1$x, object$Y))
-    
-    my.cols <- c(rgb(0,0,0,alpha=0.8), #grey
-                 rgb(1,0,0,alpha=0.8), #red
-                 rgb(0,0,1,alpha=0.8), #blue
-                 rgb(0,1,0,alpha=0.8)) #green
-    print(
-      ggplot2::ggplot(as.data.frame(view.umap[[i]]$layout), aes(view.umap[[i]]$layout[,1], view.umap[[i]]$layout[,2], col=factor(object$Y))) +
-        geom_point() + theme_bw() + xlab("UMAP Component 1") +
-        ylab("UMAP Component 2") +
-        ggtitle( paste("View", i, "- UMAP on filtered data")) +
-        scale_colour_manual(values=my.cols) +
-        theme(axis.title = element_text(face="bold"))+
-        theme(axis.text = element_text(face="bold"))+
-        guides(color = guide_legend(title = "Outcome"))
-    )
-    print(
-      ggplot2::ggplot(as.data.frame(view.pca[[i]]$layout), aes(view.pca[[i]]$layout[,1], view.pca[[i]]$layout[,2], col=factor(object$Y))) +
-        geom_point() + theme_bw() + xlab("UMAP Component 1") +
-        ylab("UMAP Component 2") +
-        ggtitle(paste("View", i, "- UMAP on PCA filtered data")) +
-        theme(axis.title = element_text(face="bold"))+
-        theme(axis.text = element_text(face="bold"))+
-        scale_colour_manual(values=my.cols) +
-        guides(color = guide_legend(title = "Outcome"))
-    )
-    Sys.sleep(5)
-    
+  plots = lapply(1:length(fit$X),
+                 FUN = function(i){
+                   
+                   if(!useFilteredData){
+                     mydata=fit$X_Original[[i]]
+                   }else{
+                     mydata=fit$X[[i]]
+                   }
+                   
+                   view.umap[[i]] <- umap(cbind(mydata, fit$Y))
+                   this_title =  paste("View", i, "- UMAP on filtered data")
+                   if (usePrincipleComponents){
+                     t1 <- prcomp(mydata, rank.=10)
+                     view.pca[[i]] <- umap(cbind(t1$x, fit$Y))
+                     view.umap[[i]] = view.pca[[i]]
+                     this_title =  paste("View", i, "- UMAP on PCA on filtered data")
+                   }
+                   
+                  
+                   my.cols <- c(rgb(0,0,0,alpha=0.8), #grey
+                                rgb(1,0,0,alpha=0.8), #red
+                                rgb(0,0,1,alpha=0.8), #blue
+                                rgb(0,1,0,alpha=0.8)) #green
+                   ggplot2::ggplot(as.data.frame(view.umap[[i]]$layout), 
+                                        aes(view.umap[[i]]$layout[,1], view.umap[[i]]$layout[,2], 
+                                            col=factor(fit$Y))) +
+                     geom_point() + theme_bw() + xlab("UMAP Component 1") +
+                     ylab("UMAP Component 2") +
+                     ggtitle(this_title) +
+                     scale_colour_manual(values=my.cols) +
+                     theme(axis.title = element_text(face="bold"))+
+                     theme(axis.text = element_text(face="bold"))+
+                     guides(color = guide_legend(title = "Outcome"))
+                 })
+  if (plotIt){
+    grid.arrange(grobs = plots, nrow = 1)
+    return()
+  }else{
+    return(plots)
   }
-  
 }
 
 #' Volcano Plot
@@ -83,7 +84,7 @@ umapPlot <- function(object,filteredData=TRUE){
 #' @description Wrapper function for volcano plots of the results after
 #' supervised filtering.
 #'
-#' @param object the output from the filter.supervised() function
+#' @param fit the output from the filter.supervised() function
 #'
 #' @return A graph of the volcano plot
 #' @import ggplot2
