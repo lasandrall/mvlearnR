@@ -207,7 +207,8 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
                  data.matrix=all.selp.dat,
                  family=family,
                  InputData=list(Xdata1,Xdata2),
-                 method="selpscca.pred")
+                 method="selpscca.pred",
+                 model.separately = model.separately)
 
   class(result) <- "SELPCCA"
 
