@@ -6,7 +6,7 @@
 \usage{
 networkPlot(
   object,
-  cutoff = 0.5,
+  cutoff = NULL,
   color.node = NULL,
   lty.edge = c("solid", "dashed"),
   show.edge.labels = FALSE,
@@ -20,11 +20,11 @@ networkPlot(
 \arguments{
 \item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
 
-\item{cutoff}{a numeric value between 0 and 1 of similarity cutoff to use when
-generating graphs. Variable pairs with high
+\item{cutoff}{a vector containing  numeric values between 0 and 1 of similarity cutoff to use when
+generating graphs. Length of vector is number of pairwise data combinations. Variable pairs with high
 similarity measure may be of interest. The relevance of the associations can be explored by changing the cutoff.
 This can also be used to reduce the size of the graph, for dense network. Default is 0.5 meaning that graph will only be generated
-for variable pairs with similarity value greater than 0.5.}
+for variable pairs with similarity value greater than 0.5 for each data pair.}
 
 \item{color.node}{vector of length two, specifying the colors of nodes for pairs of views. Defaults
 to white and yellow.}

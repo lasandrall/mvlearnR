@@ -346,7 +346,7 @@ sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=T
 #' myedgeweight=sidanetData[[6]]
 #'
 #'  mycv=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
-#'     Ytest=Ytest,isParallel=TRUE,ncores=NULL,gridMethod='RandomSearch',
+#'     Ytest=Ytest,isParallel=FALSE,ncores=NULL,gridMethod='RandomSearch',
 #'     AssignClassMethod='Joint',nfolds=5,ngrid=8,standardize=TRUE,
 #'     maxiteration=20, weight=0.5,thresh=1e-03,eta=0.5)
 #'

@@ -310,7 +310,7 @@ filter.supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH
 
 
 filter.unsupervised <- function(X, method="variance", pct.keep=10,
-                              center=FALSE, scale=FASLE,standardize=FALSE,  log2TransForm=FALSE,
+                              center=FALSE, scale=FALSE,standardize=FALSE,  log2TransForm=FALSE,
                               Xtest=NULL){
   var.mat <- mean.mat <- red.mat <- X.red <- Xtest.red <- list()
 

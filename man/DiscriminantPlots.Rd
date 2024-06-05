@@ -9,7 +9,8 @@ DiscriminantPlots(
   Ytest = Ytest,
   hatalpha = hatalpha,
   method.used = "SIDA",
-  color.palette = NULL
+  color.palette = NULL,
+  plotIt = TRUE
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ plot will be generated for the first two canonical variates.}
 
 \item{color.palette}{character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)}
+
+\item{plotIt}{boolean, if TRUE, prints the plots. If FALSE, returns the ggplots as an object or list.  This is useful to customize the ggplots.}
 }
 \value{
 \item{NULL}{}
@@ -68,6 +71,7 @@ predictedClass=mysida$PredictedClass
 ##----plot discriminant plots
 #---------Discriminant plot
 mydisplot=DiscriminantPlots(Xtestdata,Ytest,mysida$hatalpha)
+gridExtra::grid.arrange(grobs = mydisplot)
 
 }
 \references{

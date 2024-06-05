@@ -129,7 +129,7 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,
     }
     return()
   }
-  # return the actual ggplot object if there was only one; otherwise,
+  # return the actual ggplot fit if there was only one; otherwise,
   # return a list of ggplot objects, and a message to print using grid.arrange()
   if (length(plots) == 1){
     return(plots[[1]])
@@ -232,7 +232,7 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
                      }
                      data.frame(score = myScores, 
                                 class = Ytest) %>%
-                       mutate(class = factor(class)) %>%
+                       dplyr::mutate(class = factor(class)) %>%
                        ggplot(aes(x = score, color = class))+
                        geom_point(aes(y = 0), shape = "|")+
                        geom_density(outline.type = "upper",
@@ -310,7 +310,7 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
 #' only be generated for classification and association problems with 3 or more classes (SIDA and SIDANet),
 #' or for CCA problems with two or more canonical correlation vectors requested (i.e. ncancorr > 1 for SELPCCA).
 #'
-#' @param object the output from SIDA, SIDANet, and SELPCCA methods
+#' @param fit the output from SIDA, SIDANet, and SELPCCA methods
 #' @param color.line color to use for plotting direction vectors. Default is "darkgray".
 #' @param keep.loadings numeric, specifying how many variables to represent on loadings plot. This is useful
 #' in situations where the number of variables selected is large, and could clutter the plot. If this number is more
@@ -364,10 +364,10 @@ LoadingsPlots=function(fit,color.line="darkgray",
   }
   plots = lapply(unique(loadings$View),
                  FUN = function(jj){
-                   xlab = ifelse(class(fit) %in% c("SIDA", "SIDANet"),
+                   xlab = ifelse(is(fit,"SIDA") | is(fit, "SIDANet"),
                                  paste("First Discriminant Vector for View", jj),
                                  paste("First Canonical Vector for View", jj))
-                   ylab = ifelse(class(fit) %in% c("SIDA", "SIDANet"),
+                   ylab = ifelse(is(fit,"SIDA") | is(fit, "SIDANet"),
                                  paste("Second Discriminant Vector for View", jj),
                                  paste("Second Canonical Vector for View", jj))
                    title = paste("Loading Plot for View", jj)
@@ -418,9 +418,9 @@ LoadingsPlots=function(fit,color.line="darkgray",
 #'
 #' @export
 Loadings = function(fit){
-  if(class(fit) %in% c("SIDA", "SIDANet")){
+  if(is(fit,"SIDA") | is(fit, "SIDANet")){
     hatalpha=fit$hatalpha
-  }else if( class(fit)=="SELPCCA"){
+  }else if(is(fit, "SELPCCA")){
     # selpcca needs conversion of hatalpha to loadings
     if(fit$method=="selpscca.pred"){
       #L=dim(hatalpha[[1]])[2]
@@ -430,7 +430,7 @@ Loadings = function(fit){
       for(j in 1:L){
         hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
       }
-    }else{ hatalpha=list(object$hatalpha,object$hatbeta)
+    }else{ hatalpha=list(fit$hatalpha,fit$hatbeta)
     L=length(hatalpha)
     for(j in 1:L){
       hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
@@ -440,9 +440,9 @@ Loadings = function(fit){
   ncomp=dim(hatalpha[[1]])[2]
   
   if(ncomp == 1){
-    if(class(fit) %in% c("SIDA", "SIDANet")){
+    if(is(fit,"SIDA") | is(fit, "SIDANet")){
       stop("Loadings not applicable with one discriminant vector" , call. = FALSE)
-    }else if(class(fit)=="SELPCCA"){
+    }else if(is(fit, "SELPCCA")){
       stop("Loadings not applicable with one CCA vector " , call. = FALSE)
     }
   }
@@ -480,9 +480,9 @@ Loadings = function(fit){
 #' only be generated for classification and association problems with 3 or more classes (SIDA and SIDANet),
 #' or for CCA problems with two or more canonical correlation vectors requested (i.e. ncancorr > 1 for SELPCCA).
 #'
-#' @param object the output from SIDA, SIDANet, and SELPCCA methods
+#' @param fit the output from SIDA, SIDANet, and SELPCCA methods
 #' @param Y a vector of class membership for grouping canonical correlatoin variates and discriminant scores.
-#' @param A list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.
+#' @param Xtest list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.
 #' @param color.palette  character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 #' Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)
 #' @param keep.loadings numeric vector of length D (number of views), specifying how many variables
@@ -525,20 +525,20 @@ Loadings = function(fit){
 #'                      Ytest=Ytest)
 #'WithinViewBiplot(mycvsidanet,Y, color.palette=NULL,keep.loadings=c(3,3))
 
-WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,
+WithinViewBiplot=function(fit,Y,Xtest=NULL, color.palette=NULL,
                           keep.loadings=NULL, plotIt = TRUE){
 
-  if(class(object)=="SIDA" | class(object)=="SIDANet"){
-    hatalpha=object$hatalpha
-  }else if( class(object)=="SELPCCA"){
-    if(object$method=="selpscca.pred"){
-      hatalpha=list(object$selp.fit$hatalpha,object$selp.fit$hatbeta)
+  if(is(fit,"SIDA") | is(fit, "SIDANet")){
+    hatalpha=fit$hatalpha
+  }else if(is(fit, "SELPCCA")){
+    if(fit$method=="selpscca.pred"){
+      hatalpha=list(fit$selp.fit$hatalpha,fit$selp.fit$hatbeta)
       L=length(hatalpha)
       #L=dim(hatalpha[[1]])[2]
       for(j in 1:L){
         hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
       }
-    }else{ hatalpha=list(object$hatalpha,object$hatbeta)
+    }else{ hatalpha=list(fit$hatalpha,fit$hatbeta)
     #L=dim(hatalpha[[1]])[2]
     L=length(hatalpha)
     for(j in 1:L){
@@ -557,9 +557,9 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,
   ncomp=dim(hatalpha[[1]])[2]
   
   if(ncomp == 1){
-    if(class(object)=="SIDA" | class(object)=="SIDANet"){
+    if(is(fit,"SIDA") | is(fit, "SIDANet")){
       stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
-    }else if(class(object)=="SELPCCA"){
+    }else if(is(fit, "SELPCCA")){
       stop("Loadings plot not applicable with one CCA vector" , call. = FALSE)
     }
   }
@@ -575,7 +575,7 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,
     
   plots = lapply(1:D,
                  FUN = function(jj){
-                   X1=as.data.frame(object$InputData[[jj]])
+                   X1=as.data.frame(fit$InputData[[jj]])
 
                    hatalpha1=rowSums(abs(hatalpha[[jj]]))
                    hatalpha2=hatalpha1[order(hatalpha1,decreasing=TRUE)]
@@ -629,28 +629,28 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,
                        scale_colour_manual(values=color.palette) +
                        scale_fill_manual(values = color.palette) +
                        xlab(
-                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                         if(is(fit,"SIDA") | is(fit, "SIDANet")){
                            paste(
                              "First Discriminant Score for View ", jj)
-                         }else if(class(object)=="SELPCCA"){
+                         }else if(is(fit,"SELPCCA")){
                            paste("First Canonical Variate for View ",jj)
                          }
                          # paste(
                          # "First Discriminant Score for View ", jj)
                        ) +
                        ylab(
-                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                         if(is(fit,"SIDA") | is(fit, "SIDANet")){
                            paste(
                              "Second Discriminant Score for View ", jj)
-                         }else if(class(object)=="SELPCCA"){
+                         }else if(is(fit, "SELPCCA")){
                            paste("Second Canonical Variate for View ",jj)
                          }
                          #paste("Second Discriminant Score for View ", jj)
                        ) +
                        ggtitle(
-                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                         if(is(fit,"SIDA") | is(fit, "SIDANet")){
                            paste("SIDA Biplot for View ",jj)
-                         }else if(class(object)=="SELPCCA"){
+                         }else if(is(fit, "SELPCCA")){
                            paste("SELPCCA Biplot for View ",jj)
                          }
                        )+
@@ -692,9 +692,9 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,
 #' sum of scores for each view. Solid and dashed lines represent vectors for Views 1 and 2,
 #' respectively.
 #'
-#' @param object the output from SIDA, SIDANet, and SELPCCA methods
+#' @param fit the output from SIDA, SIDANet, and SELPCCA methods
 #' @param Y a vector of class membership for grouping canonical correlatoin variates and discriminant scores.
-#' @param A list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.
+#' @param Xtest list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.
 #' @param color.palette  character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 #' Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)
 #' @param keep.loadings numeric vector of length D (number of views), specifying how many variables
@@ -702,6 +702,7 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,
 #' in situations where the number of variables selected is large, and could clutter the plot. If this number is more
 #' than the variables selected, it will be set to the maximum number of variables selected for each view.
 #' Default is plotting all selected variables.
+#' @param plotIt boolean, whether to print the result or just return it. default is TRUE.
 #' @details The function will return loading plots, one for each view.
 #'
 #' @return
@@ -735,19 +736,19 @@ WithinViewBiplot=function(object,Y,Xtest=NULL, color.palette=NULL,
 #'                      Ytest=Ytest)
 #'BetweenViewBiplot(mycvsidanet, Y,keep.loadings=c(3,3) )
 
-BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings=NULL,plotIt = TRUE){
-  if(class(object)=="SIDA" | class(object)=="SIDANet"){
-    hatalpha=object$hatalpha
-  }else if( class(object)=="SELPCCA"){
-    if(object$method=="selpscca.pred"){
-      hatalpha=list(object$selp.fit$hatalpha,object$selp.fit$hatbeta)
+BetweenViewBiplot=function(fit,Y, Xtest=NULL,color.palette=NULL,keep.loadings=NULL,plotIt = TRUE){
+  if(is(fit,"SIDA") | is(fit, "SIDANet")){
+    hatalpha=fit$hatalpha
+  }else if(is(fit, "SELPCCA")){
+    if(fit$method=="selpscca.pred"){
+      hatalpha=list(fit$selp.fit$hatalpha,fit$selp.fit$hatbeta)
       #L=dim(hatalpha[[1]])[2]
       L=length(hatalpha)
       for(j in 1:L){
         hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
       }
     }else{
-      hatalpha=list(object$hatalpha,object$hatbeta)
+      hatalpha=list(fit$hatalpha,fit$hatbeta)
       #L=dim(hatalpha[[1]])[2]
       L=length(hatalpha)
     for(j in 1:L){
@@ -780,9 +781,9 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
   ncomp=dim(hatalpha[[1]])[2]
   
   if(ncomp == 1){
-    if(class(object)=="SIDA" | class(object)=="SIDANet"){
+    if(is(fit,"SIDA") | is(fit, "SIDANet")){
       stop("Loadings plot not applicable with one discriminant vector" , call. = FALSE)
-    }else if(class(object)=="SELPCCA"){
+    }else if(is(fit, "SELPCCA")){
       stop("Loadings plot not applicable with one CCA vecto " , call. = FALSE)
     }
   }
@@ -797,23 +798,23 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
   
   plots = lapply(1:dim(mycomb)[2],
                  FUN = function(jj){
-                   X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
-                   X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
+                   X1=as.data.frame(fit$InputData[[mycomb[1,jj]]])
+                   X2=as.data.frame(fit$InputData[[mycomb[2,jj]]])
                    
                    if(is.null(Xtest)){
                      if(length(Y)!=dim(X1)[1]){
                        stop('size of Y must be the same as X')
                      }
-                     X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
-                     X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
+                     X1=as.data.frame(fit$InputData[[mycomb[1,jj]]])
+                     X2=as.data.frame(fit$InputData[[mycomb[2,jj]]])
                    }else if(!is.null(Xtest)){
                      Xtest[[jj]]=as.data.frame(Xtest[[jj]])
                      if(length(Y)==dim(Xtest[[jj]])[1]){
                        X1=as.data.frame(Xtest[[mycomb[1,jj]]])
                        X2=as.data.frame(Xtest[[mycomb[2,jj]]])
                      }else{
-                       X1=as.data.frame(object$InputData[[mycomb[1,jj]]])
-                       X2=as.data.frame(object$InputData[[mycomb[2,jj]]])
+                       X1=as.data.frame(fit$InputData[[mycomb[1,jj]]])
+                       X2=as.data.frame(fit$InputData[[mycomb[2,jj]]])
                      }
                    }
                    
@@ -834,10 +835,10 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
                        keep.loadings[[mycomb[2,jj]]]=sum(hatalpha2!=0)
                      }
                      #for one view
-                     mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[mycomb[1,jj]]])))
+                     mycolnames=sub("\\;.*", "", colnames(as.data.frame(fit$InputData[[mycomb[1,jj]]])))
                      var1.names <- mycolnames[col1[1:keep.loadings[[mycomb[1,jj]]]]]
                      #for another view
-                     mycolnames=sub("\\;.*", "", colnames(as.data.frame(object$InputData[[mycomb[2,jj]]])))
+                     mycolnames=sub("\\;.*", "", colnames(as.data.frame(fit$InputData[[mycomb[2,jj]]])))
                      var2.names <- mycolnames[col2[1:keep.loadings[[mycomb[2,jj]]]]]
                      
                      myloadings[[1]]=as.data.frame(scale(hatalpha[[mycomb[1,jj]]][col1[1:keep.loadings[[mycomb[1,jj]]]],],center=FALSE,scale=FALSE))
@@ -885,26 +886,26 @@ BetweenViewBiplot=function(object,Y, Xtest=NULL,color.palette=NULL,keep.loadings
                        scale_colour_manual(values=color.palette) +
                        scale_fill_manual(values = color.palette) +
                        xlab(
-                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                         if(is(fit,"SIDA") | is(fit, "SIDANet")){
                            paste(
                              "First Discriminant Score")
-                         }else if(class(object)=="SELPCCA"){
+                         }else if(is(fit, "SELPCCA")){
                            paste("First Canonical Variate")
                          }
                        ) +
                        ylab(
-                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                         if(is(fit,"SIDA") | is(fit, "SIDANet")){
                            paste(
                              "Second Discriminant Score")
-                         }else if(class(object)=="SELPCCA"){
+                         }else if(is(fit, "SELPCCA")){
                            paste("Second Canonical Variate")
                          }
                          #paste("Second Discriminant Score for View ", jj)
                        ) +
                        ggtitle(
-                         if(class(object)=="SIDA" | class(object)=="SIDANet"){
+                         if(is(fit,"SIDA") | is(fit, "SIDANet")){
                            paste("SIDA Biplot for Views ",mycomb[1,jj], "and", mycomb[2,jj])
-                         }else if(class(object)=="SELPCCA"){
+                         }else if(is(fit, "SELPCCA")){
                            paste("SELPCCA Biplot for Views ",mycomb[1,jj], "and", mycomb[2,jj])
                          }
                        )+

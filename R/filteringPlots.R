@@ -5,8 +5,10 @@
 #' method.
 #'
 #' @param fit the output from the filter.supervised() function
-#' @param filteredData Boolean on whether to plot UMAP on filtered or original data.
+#' @param usefilteredData Boolean on whether to plot UMAP on filtered or original data.
 #' Default is filtered data.
+#' @param usePrincipleComponents boolean on whether to apply PCA first 
+#' @param plotIt boolean, whether to print the result or just return it (default = TRUE)
 #'
 #' @return A graph of the UMAP
 #'
@@ -72,7 +74,7 @@ umapPlot <- function(fit,
                      guides(color = guide_legend(title = "Outcome"))
                  })
   if (plotIt){
-    grid.arrange(grobs = plots, nrow = 1)
+    gridExtra::grid.arrange(grobs = plots, nrow = 1)
     return()
   }else{
     return(plots)
@@ -110,13 +112,13 @@ umapPlot <- function(fit,
 volcanoPlot <- function(fit, plotIt = TRUE){
   results = fit[["pval.mat"]]
   results$VariableName = sub("\\;.*", "", row.names(results))
-  xlab = case_when(
+  xlab = dplyr::case_when(
     fit$method == "logistic" ~ ("Log Odds Ratio"),
     fit$method == "linear" ~ ("Means"),
     fit$method == "t.test" ~ ("Mean Difference"),
     fit$method == "kw" ~ ("KW Test Statistic")
   )
-  ylab = case_when(
+  ylab = dplyr::case_when(
     fit$padjust ~ "-log[10]*padj",
     !fit$padjust ~ "-log[10]*p"
   )
@@ -127,13 +129,13 @@ volcanoPlot <- function(fit, plotIt = TRUE){
                      dplyr::filter(View == view)
                    labeled_names = sub_results %>% 
                      dplyr::filter(Keep) %>%
-                     group_by(Coef < 0) %>%
-                     arrange(Pval, Coef) %>%
-                     slice_head(n = 15) %>%
-                     pull(VariableName)
+                     dplyr::group_by(Coef < 0) %>%
+                     dplyr::arrange(Pval, Coef) %>%
+                     dplyr::slice_head(n = 15) %>%
+                     dplyr::pull(VariableName)
                    
                    sub_results %>%
-                     mutate(Name = ifelse(VariableName %in% labeled_names,
+                     dplyr::mutate(Name = ifelse(VariableName %in% labeled_names,
                                           VariableName, NA)) %>%
                      ggplot(aes(x = Coef, y = -log10(Pval),
                                 color = Keep,

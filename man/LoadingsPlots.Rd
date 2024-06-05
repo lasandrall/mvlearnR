@@ -4,17 +4,24 @@
 \alias{LoadingsPlots}
 \title{Loadings Plots}
 \usage{
-LoadingsPlots(object, color.line = "darkgray", keep.loadings = NULL)
+LoadingsPlots(
+  fit,
+  color.line = "darkgray",
+  keep.loadings = NULL,
+  plotIt = TRUE
+)
 }
 \arguments{
-\item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
-
 \item{color.line}{color to use for plotting direction vectors. Default is "darkgray".}
 
 \item{keep.loadings}{numeric, specifying how many variables to represent on loadings plot. This is useful
 in situations where the number of variables selected is large, and could clutter the plot. If this number is more
 than the variables selected, it will be set to the maximum number of variables selected for each view.
 Default is plotting all selected variables.}
+
+\item{plotIt}{boolean, if TRUE, prints the plots. If FALSE, returns the ggplots as an object or list.  This is useful to customize the ggplots.}
+
+\item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
 }
 \value{
 \item{NULL}{}
@@ -32,7 +39,7 @@ only be generated for classification and association problems with 3 or more cla
 or for CCA problems with two or more canonical correlation vectors requested (i.e. ncancorr > 1 for SELPCCA).
 }
 \details{
-The function will return loading plots, one for each view.
+The function will either return nothing (if plotIt == TRUE), or return loading plots, one for each view.
 }
 \examples{
 data("sidanetData")

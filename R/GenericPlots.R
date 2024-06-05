@@ -58,7 +58,7 @@ VarImportancePlot <- function(fit, max.loadings = 20, plotIt = TRUE){
                     dplyr::filter(abs(`Normalized Relative Importance`) > 0) %>%
                     dplyr::slice_max(`Normalized Relative Importance`,
                                      n = max.loadings) %>%
-                    mutate(`Variable Name` = factor(`Variable Name`,
+                    dplyr::mutate(`Variable Name` = factor(`Variable Name`,
                                                     levels = (
                                                       `Variable Name`[order(`Normalized Relative Importance`)]
                                                     ))) %>%
@@ -73,7 +73,7 @@ VarImportancePlot <- function(fit, max.loadings = 20, plotIt = TRUE){
                     xlab('')+
                     theme(axis.title = element_text(face="bold"))+
                     theme(axis.text = element_text(face="bold"))+
-                    ggtitle(ifelse(class(fit) == "SELP",
+                    ggtitle(ifelse(is(fit, "SELP"),
                                    paste0("Variable importance for View ", view, " CCA Vector 1"),
                                    paste0("Variable importance for View ", view)))
                     
@@ -112,7 +112,7 @@ VarImportancePlot <- function(fit, max.loadings = 20, plotIt = TRUE){
 #' ##----  Obtain variable importance plot
 #' VarImportance(mycv)
 VarImportance <- function(fit){
-  if(class(fit)=="SIDA" | class(fit)=="SIDANet"){
+  if(is(fit, "SIDA") | is(fit, "SIDANet")){
     method="SIDA"
     myfit=fit
     
@@ -168,7 +168,7 @@ VarImportance <- function(fit){
       }
       
     }
-  }else if(class(fit)=="SELP-Predict"|class(fit)=="SELPCCA"){
+  }else if(is(fit, "SELP-Predict")|is(fit, "SELPCCA")){
     method="SELP"
     if(fit$method=="cvselpscca"|fit$method=="multiplescca"){
       myfit=fit
@@ -196,7 +196,7 @@ VarImportance <- function(fit){
       
     }
     df2 <- as.data.frame(df)
-    colnames(df2) <- c("View 1 Canonical Correlation Vector", "Variable Name",
+    colnames(df2) <- c("View", "Variable Name",
                        "Loading", "Absolute Loading",
                        "Normalized Relative Importance")
     dfView1 <- cbind.data.frame(df2[,1:2],round(df2[,c(3:5)],3))
@@ -226,7 +226,7 @@ VarImportance <- function(fit){
       df <- rbind.data.frame(df, cbind.data.frame(i, col1name, col2, col3, col4))
     }
     df2 <- as.data.frame(df)
-    colnames(df2) <- c("View 2 Canonical Vector", "Variable Name",
+    colnames(df2) <- c("View", "Variable Name",
                        "Loading", "Absolute Loading",
                        "Normalized Relative Importance")
     dfView2 <- cbind.data.frame(df2[,1:2],round(df2[,c(3:5)],3))
@@ -707,14 +707,14 @@ bin.color=function (mat, cutoff, breaks, col, symkey)
 
 networkplotinner=function(object){
 
-  if(class(object)=="SIDA" | class(object)=="SIDANet"){
+  if(is(object, "SIDA") | is(object, "SIDANet")){
     hatalpha=object$hatalpha
     #L=dim(hatalpha[[1]])[2]
     L=length(hatalpha)
     for(j in 1:L){
       hatalpha[[j]]=qr.Q(qr(hatalpha[[j]]))
     }
-  }else if( class(object)=="SELPCCA"){
+  }else if(is(object, "SELPCCA")){
     if(object$method=="selpscca.pred"){
       hatalpha=list(object$selp.fit$hatalpha,object$selp.fit$hatbeta
                     )

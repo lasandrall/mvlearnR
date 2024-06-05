@@ -9,7 +9,8 @@ BetweenViewBiplot(
   Y,
   Xtest = NULL,
   color.palette = NULL,
-  keep.loadings = c(20, 30)
+  keep.loadings = NULL,
+  plotIt = TRUE
 )
 }
 \arguments{

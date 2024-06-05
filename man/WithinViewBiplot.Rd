@@ -9,7 +9,8 @@ WithinViewBiplot(
   Y,
   Xtest = NULL,
   color.palette = NULL,
-  keep.loadings = NULL
+  keep.loadings = NULL,
+  plotIt = TRUE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ to represent on loadings plot for each view. This is useful
 in situations where the number of variables selected is large, and could clutter the plot. If this number is more
 than the variables selected, it will be set to the maximum number of variables selected for each view.
 Default is plotting all selected variables.}
+
+\item{plotIt}{boolean, if TRUE, prints the plots. If FALSE, returns the ggplots as an object or list. This is useful to customize the ggplots.}
 
 \item{A}{list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.}
 }
@@ -44,7 +47,7 @@ only be generated for classification and association problems with 3 or more cla
 or for CCA problems with two or more canonical correlation vectors requested (i.e. ncancorr > 1 for SELPCCA).
 }
 \details{
-The function will return loading plots, one for each view.
+The function will either show the plots (if plotIt == TRUE) or return a list of loading plots, one for each view.
 }
 \examples{
 data("sidanetData")
