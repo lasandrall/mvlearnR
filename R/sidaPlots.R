@@ -347,7 +347,7 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
 #'myedgeweight=sidanetData[[6]]
 #'##---- call cross validation
 #'mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
-#'                      Ytest=Ytest)
+#'                      Ytest=Ytest, isParallel = FALSE)
 #'LoadingsPlots(mycvsidanet,keep.loadings=c(3,3))
 
 LoadingsPlots=function(fit,color.line="darkgray",
@@ -522,7 +522,7 @@ Loadings = function(fit){
 #'myedgeweight=sidanetData[[6]]
 #'##---- call cross validation
 #'mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
-#'                      Ytest=Ytest)
+#'                      Ytest=Ytest, isParallel = FALSE)
 #'WithinViewBiplot(mycvsidanet,Y, color.palette=NULL,keep.loadings=c(3,3))
 
 WithinViewBiplot=function(fit,Y,Xtest=NULL, color.palette=NULL,
@@ -733,7 +733,7 @@ WithinViewBiplot=function(fit,Y,Xtest=NULL, color.palette=NULL,
 #'myedgeweight=sidanetData[[6]]
 #'##---- call cross validation
 #'mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
-#'                      Ytest=Ytest)
+#'                      Ytest=Ytest, isParallel = FALSE)
 #'BetweenViewBiplot(mycvsidanet, Y,keep.loadings=c(3,3) )
 
 BetweenViewBiplot=function(fit,Y, Xtest=NULL,color.palette=NULL,keep.loadings=NULL,plotIt = TRUE){

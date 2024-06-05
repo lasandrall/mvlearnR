@@ -46,7 +46,7 @@
 #' Xtestdata <- sidaData[[3]]
 #' Ytest <- sidaData[[4]]
 #' ##---- call cross validation
-#' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+#' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest, isParallel = FALSE)
 #' ##----  Obtain variable importance plot
 #' VarImportancePlot(mycv, max.loadings = 15)
 VarImportancePlot <- function(fit, max.loadings = 20, plotIt = TRUE){
@@ -108,7 +108,7 @@ VarImportancePlot <- function(fit, max.loadings = 20, plotIt = TRUE){
 #' Xtestdata <- sidaData[[3]]
 #' Ytest <- sidaData[[4]]
 #' ##---- call cross validation
-#' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+#' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest, isParallel = FALSE)
 #' ##----  Obtain variable importance plot
 #' VarImportance(mycv)
 VarImportance <- function(fit){
@@ -311,7 +311,8 @@ VarImportance <- function(fit){
 #' Xtestdata <- sidaData[[3]]
 #' Ytest <- sidaData[[4]]
 #' ##---- call cross validation
-#' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+#' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,
+#' Ytest=Ytest, isParallel = FALSE)
 #' ##----  Obtain relevance network
 #' networkPlot(mycv,cutoff=0.7)
 

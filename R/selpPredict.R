@@ -82,7 +82,7 @@
 #'
 #' myresult=selpscca.pred(Xdata1, Xdata2, Y,fitselpCCA=NULL, family="binomial",
 #'              event=NULL,model.separately=FALSE, ncancorr=1,
-#'              CovStructure="Iden", isParallel=TRUE, ncores=NULL,
+#'              CovStructure="Iden", isParallel=FALSE, ncores=NULL,
 #'              nfolds=5, ngrid=10, standardize=TRUE,thresh=0.0001,
 #'              maxiteration=20, showProgress=T)
 #'
@@ -248,7 +248,7 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #'
 #'myresult=selpscca.pred(Xdata1, Xdata2, Y,fitselpCCA=NULL, family="binomial",
 #'                       event=NULL,model.separately=FALSE, ncancorr=1,
-#'                       CovStructure="Iden", isParallel=TRUE, ncores=NULL,
+#'                       CovStructure="Iden", isParallel=FALSE, ncores=NULL,
 #'                       nfolds=5, ngrid=10, standardize=TRUE,thresh=0.0001,
 #'                       maxiteration=20, showProgress=T)
 #'

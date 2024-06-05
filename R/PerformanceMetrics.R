@@ -58,7 +58,7 @@
 #'Ytest=sidaData[[4]]
 #' ##---- call cross validation
 #'  mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest,
-#'              isParallel=TRUE,ncores=NULL,gridMethod='RandomSearch',
+#'              isParallel=FALSE,ncores=NULL,gridMethod='RandomSearch',
 #'              AssignClassMethod='Joint',nfolds=5,ngrid=8,standardize=TRUE,
 #'             maxiteration=20, weight=0.5,thresh=1e-03)
 #' #check output
@@ -166,7 +166,7 @@ PerformanceMetrics = function(Y.pred, Y.test, family='binomial'){
 #'Ytest=sidaData[[4]]
 #' ##---- call cross validation
 #'  mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest,
-#'              isParallel=TRUE,ncores=NULL,gridMethod='RandomSearch',
+#'              isParallel=FALSE,ncores=NULL,gridMethod='RandomSearch',
 #'              AssignClassMethod='Joint',nfolds=5,ngrid=8,standardize=TRUE,
 #'             maxiteration=20, weight=0.5,thresh=1e-03)
 #' #check output
