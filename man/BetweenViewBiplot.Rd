@@ -5,7 +5,7 @@
 \title{Biplots for Discriminant Scores or Canonical Correlation Variates between pairs of views}
 \usage{
 BetweenViewBiplot(
-  object,
+  fit,
   Y,
   Xtest = NULL,
   color.palette = NULL,
@@ -14,9 +14,11 @@ BetweenViewBiplot(
 )
 }
 \arguments{
-\item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
+\item{fit}{the output from SIDA, SIDANet, and SELPCCA methods}
 
 \item{Y}{a vector of class membership for grouping canonical correlatoin variates and discriminant scores.}
+
+\item{Xtest}{list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.}
 
 \item{color.palette}{character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)}
@@ -27,7 +29,7 @@ in situations where the number of variables selected is large, and could clutter
 than the variables selected, it will be set to the maximum number of variables selected for each view.
 Default is plotting all selected variables.}
 
-\item{A}{list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.}
+\item{plotIt}{boolean, whether to print the result or just return it. default is TRUE.}
 }
 \value{
 \item{NULL}{}

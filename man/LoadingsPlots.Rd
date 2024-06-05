@@ -12,6 +12,8 @@ LoadingsPlots(
 )
 }
 \arguments{
+\item{fit}{the output from SIDA, SIDANet, and SELPCCA methods}
+
 \item{color.line}{color to use for plotting direction vectors. Default is "darkgray".}
 
 \item{keep.loadings}{numeric, specifying how many variables to represent on loadings plot. This is useful
@@ -20,8 +22,6 @@ than the variables selected, it will be set to the maximum number of variables s
 Default is plotting all selected variables.}
 
 \item{plotIt}{boolean, if TRUE, prints the plots. If FALSE, returns the ggplots as an object or list.  This is useful to customize the ggplots.}
-
-\item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
 }
 \value{
 \item{NULL}{}

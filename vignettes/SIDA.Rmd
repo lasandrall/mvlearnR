@@ -156,7 +156,9 @@ Ytest.in=Clinical.Test$DiseaseStatus.Indicator
 
 fit.cvsida <- cvSIDA(Xdata, Y,
                      Xtestdata = Xtest.in,
-                     Ytest = Ytest.in+1, plotIt = F)
+                     Ytest = Ytest.in+1,
+                     isParallel = FALSE,
+                     plotIt = FALSE)
 
 
 #From implementing SIDA, we observed that 26 proteins and 23 genes have nonzero coefficients, which suggests that these proteins and genes maximize both correlation between the proteomics and RNASeq data (estimated correlation is 0.42) as well as separation between those with and without COVID-19. 

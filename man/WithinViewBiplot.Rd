@@ -5,7 +5,7 @@
 \title{Biplots for Discriminant Scores or Canonical Correlation Variates for each View}
 \usage{
 WithinViewBiplot(
-  object,
+  fit,
   Y,
   Xtest = NULL,
   color.palette = NULL,
@@ -14,9 +14,11 @@ WithinViewBiplot(
 )
 }
 \arguments{
-\item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
+\item{fit}{the output from SIDA, SIDANet, and SELPCCA methods}
 
 \item{Y}{a vector of class membership for grouping canonical correlatoin variates and discriminant scores.}
+
+\item{Xtest}{list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.}
 
 \item{color.palette}{character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)}
@@ -28,8 +30,6 @@ than the variables selected, it will be set to the maximum number of variables s
 Default is plotting all selected variables.}
 
 \item{plotIt}{boolean, if TRUE, prints the plots. If FALSE, returns the ggplots as an object or list. This is useful to customize the ggplots.}
-
-\item{A}{list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.}
 }
 \value{
 \item{NULL}{}

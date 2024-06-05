@@ -9,7 +9,7 @@ filter.unsupervised(
   method = "variance",
   pct.keep = 10,
   center = FALSE,
-  scale = FASLE,
+  scale = FALSE,
   standardize = FALSE,
   log2TransForm = FALSE,
   Xtest = NULL

@@ -138,7 +138,8 @@ Based on the results, there are 78 proteins with nonzero coefficients in the fir
 Xdata1 <- filterOmics$X[[1]] #proteomics
 Xdata2 <- filterOmics$X[[2]] #RNASeq
 
-mycvselpcca=cvselpscca(Xdata1, Xdata2, ncancorr=2)
+mycvselpcca=cvselpscca(Xdata1, Xdata2, ncancorr=2, 
+                       isParallel = FALSE)
 
 
 ```
