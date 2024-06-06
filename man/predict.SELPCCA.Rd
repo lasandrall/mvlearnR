@@ -4,7 +4,7 @@
 \alias{predict.SELPCCA}
 \title{Prediction for out-of-sample data for SELPCCA predict}
 \usage{
-\method{predict}{SELPCCA}(object, newdata, newdata2, type = "response")
+\method{predict}{SELPCCA}(object, newdata, newdata2, type = "response", ...)
 }
 \arguments{
 \item{object}{A fitted model of class SELPCCA}
@@ -16,6 +16,8 @@ samples and columns are variables.}
 samples and columns are variables.}
 
 \item{type}{See predict.glm() and predict.coxph() for type options and defaults.}
+
+\item{...}{Additional arguments passed to predict.}
 }
 \value{
 An object containing the output from predict.glm() or predict.coxph()

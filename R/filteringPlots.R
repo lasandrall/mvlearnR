@@ -92,6 +92,7 @@ umapPlot <- function(fit,
 #' @return A graph of the volcano plot
 #' @import ggplot2
 #' @importFrom dplyr "%>%"
+#' @importFrom grDevices rgb
 #'
 #' @export
 #'

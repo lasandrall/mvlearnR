@@ -7,6 +7,7 @@
 #' @param Xtestdata2 a matrix or data.frame with the second view's test X data
 #' @param Ytest a vector of test response values
 #'
+#' @importFrom stats logLik AIC BIC deviance predict
 #' @return A data.frame
 #'
 #'

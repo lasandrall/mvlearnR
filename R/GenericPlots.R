@@ -297,7 +297,7 @@ VarImportance <- function(fit){
 #'Visualising associations between paired omics data sets. J. Data Mining 5:19.
 #'
 #' @importFrom igraph vcount graph.data.frame E V delete.vertices layout.fruchterman.reingold plot.igraph
-#' @importFrom grDevices dev.cur dev.off jpeg tiff pdf
+#' @importFrom grDevices dev.cur dev.off jpeg tiff pdf rgb
 #' @importFrom stats cor
 #' @importFrom utils combn
 #' @importFrom grDevices dev.new colorRamp colorRampPalette
@@ -840,6 +840,7 @@ networkplotinner=function(object){
 
 #-- green-black-red gradient colors --#
 #-------------------------------------#
+#' @importFrom grDevices rgb
 color.GreenRed =
   function (n, alpha = 1)
   {

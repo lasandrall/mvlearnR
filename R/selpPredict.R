@@ -232,7 +232,7 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #' @param newdata2 A matrix of size \eqn{n \times q} for the second dataset. Rows are
 #'        samples and columns are variables.
 #' @param type See predict.glm() and predict.coxph() for type options and defaults.
-#'
+#' @param ... Additional arguments passed to predict.
 #' @return An object containing the output from predict.glm() or predict.coxph()
 #'
 #' @seealso \code{\link{cvSIDA}}  \code{\link{sidatunerange}}
@@ -278,7 +278,7 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #'print(test.metrics)
 #'}
 
-predict.SELPCCA <- function(object, newdata, newdata2, type="response"){
+predict.SELPCCA <- function(object, newdata, newdata2, type="response", ...){
   newdata=apply(as.matrix(newdata), 2, as.numeric)
   newdata2=apply(as.matrix(newdata2), 2, as.numeric)
   scoresX1=newdata %*% object$selp.fit$hatalpha
