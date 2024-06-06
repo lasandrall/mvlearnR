@@ -21,12 +21,13 @@ Description: The  mvlearnR package and accompanying Shiny App is intended for in
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
+LazyDataCompression: xz
 RoxygenNote: 7.3.1
 Imports: stats, graphics, doParallel, parallel, CVXR, foreach, igraph,
-        RSpectra, Matrix, ggplot2, ggpubr, umap,ggthemes,methods, ROCit
+        RSpectra, Matrix, dplyr, ggplot2, umap,ggthemes,methods, ROCit,
+        gridExtra, pscl, survival
 Suggests: 
     knitr,
-    dplyr,
     rmarkdown,
     testthat (>= 3.0.0)
 Depends: R (>= 3.5.0)

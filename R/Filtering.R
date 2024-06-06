@@ -33,8 +33,7 @@
 #'   \item{method}{Method used for filtering}
 #'   \item{pval.mat}{Dataset containing the calculated p-values for each feature, coefficients, and whether significant.}
 #'
-#' @import umap
-#' @import stats
+#' @importFrom umap umap
 #' @importFrom stats binomial glm kruskal.test lm p.adjust prcomp t.test var
 #'
 #' @export
@@ -272,7 +271,6 @@ filter.supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH
 #'   \item{method}{Method used for filtering}
 #'   \item{var.mat}{Dataset containing the calculated mean and variances for each feature.}
 #'
-#' @import stats
 #' @importFrom stats binomial glm kruskal.test lm p.adjust prcomp t.test var
 #' @export
 #' @examples

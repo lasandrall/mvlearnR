@@ -296,10 +296,7 @@ VarImportance <- function(fit){
 #'González I., Lê Cao K-A., Davis, M.J. and Déjean, S. (2012).
 #'Visualising associations between paired omics data sets. J. Data Mining 5:19.
 #'
-#' @import igraph
-#' @import grDevices
-#' @import methods
-#' @import graphics
+#' @importFrom igraph vcount graph.data.frame E V delete.vertices layout.fruchterman.reingold plot.igraph
 #' @importFrom grDevices dev.cur dev.off jpeg tiff pdf
 #' @importFrom stats cor
 #' @importFrom utils combn

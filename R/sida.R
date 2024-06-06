@@ -58,17 +58,15 @@
 #' Analysis for Multi-view Structured Data, Biometrics.
 #'
 #' @import RSpectra
-#' @import CVXR
 #' @import foreach
 #' @import doParallel
-#' @import igraph
 #' @import parallel
 #' @importFrom graphics legend par plot points
 #' @importFrom stats aggregate density quantile
 #' @importFrom utils combn
 #' @importFrom graphics lines
 #' @importFrom Matrix Matrix
-#' @importFrom CVXR power
+#' @importFrom CVXR norm diag
 #'
 #' @export
 #' @examples
@@ -180,7 +178,7 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 
   #norm function for convergence
   normdiff=function(xnew,xold){
-    ndiff=norm(xnew-xold,'f')^2 / norm (xold,'f')^2
+    ndiff=CVXR::norm(xnew-xold,'f')^2 / norm (xold,'f')^2
   }
   #initialize
   iter=0
@@ -205,8 +203,8 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
       break
     }
     diffalpha=mapply(normdiff, myalpha, myalphaold)
-    sumnormdiff=sum(sapply(1:D, function(i) norm(myalpha[[i]]-myalphaold[[i]],'f')^2 ))
-    sumnormold=sum(sapply(1:D, function(i) norm(myalphaold[[i]],'f')^2    ))
+    sumnormdiff=sum(sapply(1:D, function(i) CVXR::norm(myalpha[[i]]-myalphaold[[i]],'f')^2 ))
+    sumnormold=sum(sapply(1:D, function(i) CVXR::norm(myalphaold[[i]],'f')^2    ))
     reldiff=sumnormdiff/sumnormold
   }
 
@@ -237,7 +235,7 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
       X1X2=t(X1)%*%X2/dim(X1)[1]
       X1X1=t(X1)%*%X1/dim(X1)[1]
       X2X2=t(X2)%*%X2/dim(X2)[1]
-      sumcorr3=sum(diag(X1X2%*%t(X1X2)))/(sqrt(sum(diag(X1X1%*%X1X1)))*sqrt(sum(diag(X2X2%*%X2X2))))
+      sumcorr3=sum(CVXR::diag(X1X2%*%t(X1X2)))/(sqrt(sum(CVXR::diag(X1X1%*%X1X1)))*sqrt(sum(CVXR::diag(X2X2%*%X2X2))))
       sumCorr2=sumCorr2+sumcorr3
     }
     ss[[d]]=sumCorr2/length(dd)
@@ -331,9 +329,7 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 #' Discriminant Analysis for Multi-view Structured Data, Biometrics
 #'
 #' @importFrom foreach %dopar%
-#' @import CVXR
 #' @import RSpectra
-#' @importFrom CVXR power
 #' @importFrom igraph spectrum decompose
 #'
 #' @export
@@ -752,8 +748,6 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
 #' Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022) , Sparse Linear
 #' Discriminant Analysis for Multi-view Structured Data, Biometrics.
 #'
-#' @import CVXR
-#' @importFrom CVXR power
 #' @importFrom igraph spectrum decompose
 #'
 #' @export

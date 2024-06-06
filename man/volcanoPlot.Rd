@@ -20,7 +20,7 @@ supervised filtering.
 }
 \examples{
 ##---- read in data
-data(COVID)
+data(COVIDData)
 
 #make omics data numeric
 Proteomics= apply(as.matrix(COVIDData[[1]]), 2, as.numeric)
