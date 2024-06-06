@@ -41,6 +41,7 @@ discriminant vectors for pairwise data.
 The function will return either a single ggplot (n views == 2), or a list of ggplots (n views > 2).
 }
 \examples{
+\dontrun{
  #call sida
 data(sidaData)
 ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -70,7 +71,7 @@ predictedClass=mysida$PredictedClass
 ##----plot discriminant and correlation plots
 #---------Correlation plot
 CorrelationPlots(Xtestdata,Ytest,mysida$hatalpha)
-
+}
 
 }
 \references{

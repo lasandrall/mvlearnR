@@ -29,6 +29,7 @@
 #' @import ggplot2
 #' @export
 #' @examples
+#' \dontrun{
 #'  #call sida
 #' data(sidaData)
 #' ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -58,7 +59,7 @@
 #' ##----plot discriminant and correlation plots
 #' #---------Correlation plot
 #' CorrelationPlots(Xtestdata,Ytest,mysida$hatalpha)
-#' 
+#' }
 #'
 CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,
                           method.used="SIDA",color.palette=NULL,
@@ -174,6 +175,7 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,
 #' @import ggplot2
 #' @export
 #' @examples
+#' \dontrun{
 #'  #call sida
 #' data(sidaData)
 #' ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -203,8 +205,7 @@ CorrelationPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,hatalpha=hatalpha,
 #' ##----plot discriminant plots
 #' #---------Discriminant plot
 #' mydisplot=DiscriminantPlots(Xtestdata,Ytest,mysida$hatalpha)
-#' gridExtra::grid.arrange(grobs = mydisplot)
-#'
+#' }
 DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
                            hatalpha=hatalpha,method.used="SIDA",
                            color.palette=NULL, plotIt = TRUE){
@@ -337,6 +338,7 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
 #' @import ggthemes
 #' @export
 #' @examples
+#' \dontrun{
 #'data("sidanetData")
 #'Xdata <- sidanetData[[1]]
 #'Y <- sidanetData[[2]] #class membership already coded as 1,2,...
@@ -349,6 +351,7 @@ DiscriminantPlots=function(Xtestdata=Xtestdata,Ytest=Ytest,
 #'mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
 #'                      Ytest=Ytest, isParallel = FALSE)
 #'LoadingsPlots(mycvsidanet,keep.loadings=c(3,3))
+#'}
 
 LoadingsPlots=function(fit,color.line="darkgray",
                        keep.loadings=NULL, plotIt = TRUE){
@@ -416,7 +419,6 @@ LoadingsPlots=function(fit,color.line="darkgray",
 #' @return A data.frame with three columns. The first two columns are the non-zero loadings
 #' The last column is the View from which the loadings were obtained. 
 #'
-#' @export
 Loadings = function(fit){
   if(is(fit,"SIDA") | is(fit, "SIDANet")){
     hatalpha=fit$hatalpha
@@ -512,6 +514,7 @@ Loadings = function(fit){
 #' @import ggthemes
 #' @export
 #' @examples
+#' \dontrun{
 #'data("sidanetData")
 #'Xdata <- sidanetData[[1]]
 #'Y <- sidanetData[[2]] #class membership already coded as 1,2,...
@@ -524,6 +527,7 @@ Loadings = function(fit){
 #'mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
 #'                      Ytest=Ytest, isParallel = FALSE)
 #'WithinViewBiplot(mycvsidanet,Y, color.palette=NULL,keep.loadings=c(3,3))
+#'}
 
 WithinViewBiplot=function(fit,Y,Xtest=NULL, color.palette=NULL,
                           keep.loadings=NULL, plotIt = TRUE){
@@ -723,6 +727,7 @@ WithinViewBiplot=function(fit,Y,Xtest=NULL, color.palette=NULL,
 #' @import ggthemes
 #' @export
 #' @examples
+#' \dontrun{
 #'data("sidanetData")
 #'Xdata <- sidanetData[[1]]
 #'Y <- sidanetData[[2]] #class membership already coded as 1,2,...
@@ -735,6 +740,7 @@ WithinViewBiplot=function(fit,Y,Xtest=NULL, color.palette=NULL,
 #'mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
 #'                      Ytest=Ytest, isParallel = FALSE)
 #'BetweenViewBiplot(mycvsidanet, Y,keep.loadings=c(3,3) )
+#'}
 
 BetweenViewBiplot=function(fit,Y, Xtest=NULL,color.palette=NULL,keep.loadings=NULL,plotIt = TRUE){
   if(is(fit,"SIDA") | is(fit, "SIDANet")){

@@ -9,9 +9,6 @@
 #'
 #' @return A data.frame
 #'
-#' @export
-#'
-#' @examples
 #'
 devianceTable = function(fit, Xtestdata1, Xtestdata2, Ytest){
   method = class(fit)

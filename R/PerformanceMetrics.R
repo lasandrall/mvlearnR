@@ -50,6 +50,7 @@
   #' @export
   #'
   #' @examples
+  #' \dontrun{
   #' data(sidaData)
   ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
   #' Xdata=sidaData[[1]]
@@ -69,7 +70,7 @@
 #'  #train metrics
 #'  Y.pred=mycv$PredictedClass.train-1 #to get this in 0 and 1
 #'  Y.train=Y-1 #to get this in 0 and 1
-#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
+#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial')
 #'
 #'  print(train.metrics)
 #'  #obtain predicted class
@@ -77,6 +78,7 @@
 #'  Ytest.in=Ytest-1 #to get this in 0 and 1
 #'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial')
 #'  print(test.metrics)
+#'  }
 PerformanceMetrics = function(Y.pred, Y.test, family='binomial'){
   if (!(family %in% c("binomial","gaussian"))){
     stop('metrics available only for binary and gaussian outcomes')
@@ -158,6 +160,7 @@ PerformanceMetrics = function(Y.pred, Y.test, family='binomial'){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' data(sidaData)
 ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
 #' Xdata=sidaData[[1]]
@@ -177,13 +180,14 @@ PerformanceMetrics = function(Y.pred, Y.test, family='binomial'){
 #'  #train metrics
 #'  Y.pred=mycv$PredictedClass.train-1 #to get this in 0 and 1
 #'  Y.train=Y-1 #to get this in 0 and 1
-#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
+#'  train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial')
 #'
 #'  print(train.metrics)
 #'  #obtain predicted class
 #'  Y.pred=mycv$PredictedClass-1 #to get this in 0 and 1
 #'  Ytest.in=Ytest-1 #to get this in 0 and 1
 #'  PerformanceMetricsPlot(Y.pred,Ytest.in,family='binomial')
+#'  }
 PerformanceMetricsPlot = function(Y.pred, Y.test, family = "binomial"){
   if (!(family %in% c("binomial","gaussian"))){
     stop('metrics available only for binary and gaussian outcomes')

@@ -17,6 +17,7 @@ are normalized to the variable with the largest weight.
 returns Variable Importance tables for SIDA, SIDANet, or SELPCCA
 }
 \examples{
+\dontrun{
 ##---- load SIDA data
 data("sidaData")
 Xdata <- sidaData[[1]]
@@ -24,7 +25,8 @@ Y <- sidaData[[2]]
 Xtestdata <- sidaData[[3]]
 Ytest <- sidaData[[4]]
 ##---- call cross validation
-mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest, isParallel = FALSE)
 ##----  Obtain variable importance plot
 VarImportance(mycv)
+}
 }

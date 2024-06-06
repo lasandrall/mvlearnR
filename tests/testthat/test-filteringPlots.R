@@ -1,6 +1,7 @@
 test_that("umapPlot returns a list of two ggplots on sida filtered ", {
   expect_equal({
-    load("../../data/sida_and_sidanet_vignette_models.Rdata")
+    data = system.file("extdata", "sida_and_sidanet_vignette_models.Rdata", package = "mvlearnR")
+    load(data)
     sida_filtered = filterOmics
     sida_fit = fit.cvsida
     x = umapPlot(sida_filtered, plotIt = FALSE)
@@ -11,7 +12,8 @@ test_that("umapPlot returns a list of two ggplots on sida filtered ", {
 
 test_that("volcanoPlot returns a list of two ggplots on sida filtered ", {
   expect_equal({
-    load("../../data/sida_and_sidanet_vignette_models.Rdata")
+    data = system.file("extdata", "sida_and_sidanet_vignette_models.Rdata", package = "mvlearnR")
+    load(data)
     sida_filtered = filterOmics
     sida_fit = fit.cvsida
     x = volcanoPlot(sida_filtered, plotIt = FALSE)

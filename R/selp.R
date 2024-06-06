@@ -51,6 +51,7 @@
 #'  Expression Data. Biometrics
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(selpData)
 #'
@@ -89,7 +90,7 @@
 #'   "First Canonical correlation variate for dataset", 1),
 #'   ylab=paste("First Canonical correlation variate for dataset", 2),
 #'   main=paste("Correlation plot for datasets",1, "and" ,2, ",", "\u03C1 =", mytestcorr))
-#'
+#' }
 cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="Iden",isParallel=TRUE,ncores=NULL,nfolds=5,ngrid=10,standardize=TRUE,thresh=1e-04,maxiteration=20){
 
   Xdata1Orig=Xdata1
@@ -500,6 +501,7 @@ cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="
 #'  Expression Data. Biometrics
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(selpData)
 #'
@@ -530,6 +532,7 @@ cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="
 #' mysparsevectors=multiplescca(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,
 #'                              Tau=Tau, CovStructure="Iden",standardize=TRUE,maxiteration=20,
 #'                              thresh=0.0001)
+#' }
 cvtunerange=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="Iden",standardize=TRUE){
 
   #set defaults
@@ -629,6 +632,7 @@ cvtunerange=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure=
 #'  Expression Data. Biometrics
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(selpData)
 #'
@@ -659,6 +663,7 @@ cvtunerange=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure=
 #' mysparsevectors=multiplescca(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,
 #'                              Tau=Tau, CovStructure="Iden",standardize=TRUE,maxiteration=20,
 #'                              thresh=0.0001)
+#' }
 multiplescca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,Tau=Tau,CovStructure="Iden",standardize=TRUE,maxiteration=20,thresh=1e-04){
 
   Xdata1Orig=Xdata1

@@ -8,6 +8,8 @@ volcanoPlot(fit, plotIt = TRUE)
 }
 \arguments{
 \item{fit}{the output from the filter.supervised() function}
+
+\item{plotIt}{boolean, whether to print the result (TRUE) or just return it}
 }
 \value{
 A graph of the volcano plot

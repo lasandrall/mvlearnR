@@ -83,6 +83,7 @@ The function will return several R objects, which can be assigned to a variable.
 To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
  #call sida
 data(sidaData)
 ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -108,7 +109,7 @@ test.correlation=mysida$sidacorrelation
 hatalpha=mysida$hatalpha
 
 predictedClass=mysida$PredictedClass
-
+}
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022), Sparse Linear Discriminant

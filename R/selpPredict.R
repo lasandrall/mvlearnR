@@ -73,6 +73,7 @@
 #'  Expression Data. Biometrics
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(sidaData)
 #'
@@ -107,6 +108,7 @@
 #'Y.pred=newPredictions$pred.mod #predicted probabilities
 #'test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
 #'print(test.metrics)
+#' }
 
 
 selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
@@ -237,6 +239,7 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(sidaData)
 #'
@@ -273,6 +276,7 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #'Y.pred=newPredictions$pred.mod #predicted probabilities
 #'test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
 #'print(test.metrics)
+#'}
 
 predict.SELPCCA <- function(object, newdata, newdata2, type="response"){
   newdata=apply(as.matrix(newdata), 2, as.numeric)

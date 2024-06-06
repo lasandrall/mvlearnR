@@ -69,6 +69,7 @@
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(sidanetData)
 #'
@@ -95,6 +96,7 @@
 #' test.correlation=mysidanet$sidanetcorrelation
 #' hatalpha=mysidanet$hatalpha
 #' predictedClass=mysidanet$PredictedClass
+#' }
 sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=Tau,withCov=FALSE,Xtestdata=NULL,Ytest=NULL,AssignClassMethod='Joint',plotIt=FALSE,standardize=TRUE,maxiteration=20,weight=0.5,thresh= 1e-03,eta=0.5,mynormLaplacianG=NULL){
 
 
@@ -333,6 +335,7 @@ sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=T
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(sidanetData)
 #'
@@ -355,6 +358,7 @@ sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=T
 #' test.correlation=mycv$sidanetcorrelation
 #' optTau=mycv$optTau
 #' hatalpha=mycv$hatalpha
+#' }
 cvSIDANet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=NULL,Ytest=NULL,isParallel=TRUE,ncores=NULL,gridMethod='RandomSearch',AssignClassMethod='Joint',nfolds=5,ngrid=8,standardize=TRUE,maxiteration=20, weight=0.5,thresh=1e-03,eta=0.5){
 
   starttimeall=Sys.time()
@@ -740,6 +744,7 @@ cvSIDANet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,wit
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(sidanetData)
 #'
@@ -766,6 +771,7 @@ cvSIDANet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,wit
 #' test.correlation=mysidanet$sidanetcorrelation
 #' hatalpha=mysidanet$hatalpha
 #' predictedClass=mysidanet$PredictedClass
+#' }
 sidanettunerange=function(Xdata=Xdata,Y=Y,ngrid=8,standardize=TRUE,weight=0.5,eta=0.5,myedges=myedges,myedgeweight=myedgeweight,withCov=FALSE){
 
 

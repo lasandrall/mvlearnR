@@ -42,6 +42,7 @@ SELPCCA) for visualizing class separation
 The function will return discriminant plots.
 }
 \examples{
+\dontrun{
  #call sida
 data(sidaData)
 ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -71,8 +72,7 @@ predictedClass=mysida$PredictedClass
 ##----plot discriminant plots
 #---------Discriminant plot
 mydisplot=DiscriminantPlots(Xtestdata,Ytest,mysida$hatalpha)
-gridExtra::grid.arrange(grobs = mydisplot)
-
+}
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2023), Sparse Linear Discriminant

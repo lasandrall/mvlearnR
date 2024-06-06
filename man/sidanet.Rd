@@ -102,6 +102,7 @@ The function will return several R objects, which can be assigned to a variable.
 To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
 ##---- read in data
 data(sidanetData)
 
@@ -128,6 +129,7 @@ test.error=mysidanet$sidaneterror
 test.correlation=mysidanet$sidanetcorrelation
 hatalpha=mysidanet$hatalpha
 predictedClass=mysidanet$PredictedClass
+}
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022), Sparse Linear Discriminant

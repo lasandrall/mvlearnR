@@ -42,6 +42,7 @@ or for CCA problems with two or more canonical correlation vectors requested (i.
 The function will either return nothing (if plotIt == TRUE), or return loading plots, one for each view.
 }
 \examples{
+\dontrun{
 data("sidanetData")
 Xdata <- sidanetData[[1]]
 Y <- sidanetData[[2]] #class membership already coded as 1,2,...
@@ -52,8 +53,9 @@ myedges=sidanetData[[5]]
 myedgeweight=sidanetData[[6]]
 ##---- call cross validation
 mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
-                     Ytest=Ytest)
+                     Ytest=Ytest, isParallel = FALSE)
 LoadingsPlots(mycvsidanet,keep.loadings=c(3,3))
+}
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2023), Sparse Linear Discriminant

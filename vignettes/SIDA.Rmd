@@ -301,7 +301,7 @@ myedgeweight=sidanetData[[6]]
 
  ##---- call cross validation
 mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
-     Ytest=Ytest)
+     Ytest=Ytest, isParallel = FALSE)
 
 
 ```

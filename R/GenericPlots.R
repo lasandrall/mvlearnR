@@ -39,7 +39,8 @@
 #' @export
 #'
 #' @examples
-#' ##---- load SIDA data
+#' \dontrun{
+#' #' ##---- load SIDA data
 #' data("sidaData")
 #' Xdata <- sidaData[[1]]
 #' Y <- sidaData[[2]]
@@ -49,6 +50,8 @@
 #' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest, isParallel = FALSE)
 #' ##----  Obtain variable importance plot
 #' VarImportancePlot(mycv, max.loadings = 15)
+#' }
+
 VarImportancePlot <- function(fit, max.loadings = 20, plotIt = TRUE){
  loadings = VarImportance(fit)
  plots = lapply(unique(loadings$View),
@@ -101,6 +104,7 @@ VarImportancePlot <- function(fit, max.loadings = 20, plotIt = TRUE){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' ##---- load SIDA data
 #' data("sidaData")
 #' Xdata <- sidaData[[1]]
@@ -111,6 +115,7 @@ VarImportancePlot <- function(fit, max.loadings = 20, plotIt = TRUE){
 #' mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest, isParallel = FALSE)
 #' ##----  Obtain variable importance plot
 #' VarImportance(mycv)
+#' }
 VarImportance <- function(fit){
   if(is(fit, "SIDA") | is(fit, "SIDANet")){
     method="SIDA"
@@ -304,6 +309,7 @@ VarImportance <- function(fit){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' ##---- load SIDA data
 #' data("sidaData")
 #' Xdata <- sidaData[[1]]
@@ -315,6 +321,7 @@ VarImportance <- function(fit){
 #' Ytest=Ytest, isParallel = FALSE)
 #' ##----  Obtain relevance network
 #' networkPlot(mycv,cutoff=0.7)
+#' }
 
 
 ################################################################################

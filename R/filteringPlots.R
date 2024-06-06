@@ -5,7 +5,7 @@
 #' method.
 #'
 #' @param fit the output from the filter.supervised() function
-#' @param usefilteredData Boolean on whether to plot UMAP on filtered or original data.
+#' @param useFilteredData Boolean on whether to plot UMAP on filtered or original data.
 #' Default is filtered data.
 #' @param usePrincipleComponents boolean on whether to apply PCA first 
 #' @param plotIt boolean, whether to print the result or just return it (default = TRUE)
@@ -87,6 +87,7 @@ umapPlot <- function(fit,
 #' supervised filtering.
 #'
 #' @param fit the output from the filter.supervised() function
+#' @param plotIt boolean, whether to print the result (TRUE) or just return it
 #'
 #' @return A graph of the volcano plot
 #' @import ggplot2

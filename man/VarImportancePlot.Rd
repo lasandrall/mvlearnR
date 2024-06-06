@@ -22,14 +22,16 @@ Wrapper function to visualize loadings for variables selected
 by SIDA, SIDANet, and SELPCCA methods.
 }
 \examples{
-##---- load SIDA data
+\dontrun{
+#' ##---- load SIDA data
 data("sidaData")
 Xdata <- sidaData[[1]]
 Y <- sidaData[[2]]
 Xtestdata <- sidaData[[3]]
 Ytest <- sidaData[[4]]
 ##---- call cross validation
-mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest, isParallel = FALSE)
 ##----  Obtain variable importance plot
 VarImportancePlot(mycv, max.loadings = 15)
+}
 }

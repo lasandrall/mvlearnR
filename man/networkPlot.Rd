@@ -71,6 +71,7 @@ has potential to shed light on the complex associations between pairs of views.
 The function will return D R objects, where D is the number of views. To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
 ##---- load SIDA data
 data("sidaData")
 Xdata <- sidaData[[1]]
@@ -78,9 +79,11 @@ Y <- sidaData[[2]]
 Xtestdata <- sidaData[[3]]
 Ytest <- sidaData[[4]]
 ##---- call cross validation
-mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,
+Ytest=Ytest, isParallel = FALSE)
 ##----  Obtain relevance network
 networkPlot(mycv,cutoff=0.7)
+}
 }
 \references{
 Elise Palzer and Sandra E. Safo 2023. Submitted

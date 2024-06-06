@@ -73,6 +73,7 @@ The function will return several R objects, which can be assigned
  to a variable. To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
 ##---- read in data
 data(selpData)
 
@@ -111,7 +112,7 @@ plot(scoresX1, scoresX2,lwd=3,xlab=paste(
   "First Canonical correlation variate for dataset", 1),
   ylab=paste("First Canonical correlation variate for dataset", 2),
   main=paste("Correlation plot for datasets",1, "and" ,2, ",", "\u03C1 =", mytestcorr))
-
+}
 }
 \references{
 Sandra E. Safo, Jeongyoun Ahn, Yongho Jeon, and Sungkyu Jung (2018),

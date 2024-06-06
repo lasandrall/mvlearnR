@@ -54,6 +54,7 @@ The function will return several R objects, which can be assigned
  to a variable. To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
 ##---- read in data
 data(selpData)
 
@@ -84,6 +85,7 @@ Tau=mycv$optTau
 mysparsevectors=multiplescca(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,
                              Tau=Tau, CovStructure="Iden",standardize=TRUE,maxiteration=20,
                              thresh=0.0001)
+}
 }
 \references{
 Sandra E. Safo, Jeongyoun Ahn, Yongho Jeon, and Sungkyu Jung (2018),

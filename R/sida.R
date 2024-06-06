@@ -72,6 +72,7 @@
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #'  #call sida
 #' data(sidaData)
 #' ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -97,7 +98,7 @@
 #' hatalpha=mysida$hatalpha
 #'
 #' predictedClass=mysida$PredictedClass
-#'
+#' }
 sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
               Xtestdata=NULL,Ytest=NULL,
               AssignClassMethod='Joint',plotIt=FALSE,
@@ -337,6 +338,7 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #'  #call sida
 #' data(sidaData)
 #' ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -370,6 +372,7 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 #'  Ytest.in=Ytest-1 #to get this in 0 and 1
 #'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial')
 #'  print(test.metrics)
+#'  }
 
 cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
                 Xtestdata=NULL,Ytest=NULL,isParallel=TRUE,ncores=NULL,
@@ -755,6 +758,7 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #'  #call sida
 #' data(sidaData)
 #' ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -793,6 +797,7 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
 #'  Ytest.in=Ytest-1 #to get this in 0 and 1
 #'  test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial')
 #'  print(test.metrics)
+#'  }
 
 sidatunerange=function(Xdata,Y,ngrid=10,standardize=TRUE,
                        weight=0.5,withCov=TRUE){
@@ -917,6 +922,7 @@ sidatunerange=function(Xdata,Y,ngrid=10,standardize=TRUE,
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #'  #call sida
 #' data(sidaData)
 #' ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -941,6 +947,7 @@ sidatunerange=function(Xdata,Y,ngrid=10,standardize=TRUE,
 #' mysida.classify.Separate=sidaclassify(mysida$hatalpha,Xtestdata,Xdata,Y,
 #'                                      AssignClassMethod='Separate')
 #' mysida.PredClass.Separate=mysida.classify.Separate$PredictedClass
+#' }
 sidaclassify=function(hatalpha=hatalpha,Xtestdata=Xtestdata,Xdata=Xdata,Y=Y,AssignClassMethod='Joint', standardize=TRUE){
 
   #hatalpha is a list of d estimated SIDA vectors, for each view

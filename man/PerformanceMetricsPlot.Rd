@@ -25,6 +25,7 @@ Creates a ggplot showing either an AUC curve (family == "binomial") or a scatter
 For a binary outcome, plots an AUC curve. For a continuous (gaussian) outcome, plots a scatter of observed vs. predicted values.
 }
 \examples{
+\dontrun{
 data(sidaData)
 Xdata=sidaData[[1]]
 Y=sidaData[[2]]
@@ -32,7 +33,7 @@ Xtestdata=sidaData[[3]]
 Ytest=sidaData[[4]]
 ##---- call cross validation
  mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest,
-             isParallel=TRUE,ncores=NULL,gridMethod='RandomSearch',
+             isParallel=FALSE,ncores=NULL,gridMethod='RandomSearch',
              AssignClassMethod='Joint',nfolds=5,ngrid=8,standardize=TRUE,
             maxiteration=20, weight=0.5,thresh=1e-03)
 #check output
@@ -43,13 +44,14 @@ Ytest=sidaData[[4]]
  #train metrics
  Y.pred=mycv$PredictedClass.train-1 #to get this in 0 and 1
  Y.train=Y-1 #to get this in 0 and 1
- train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
+ train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial')
 
  print(train.metrics)
  #obtain predicted class
  Y.pred=mycv$PredictedClass-1 #to get this in 0 and 1
  Ytest.in=Ytest-1 #to get this in 0 and 1
  PerformanceMetricsPlot(Y.pred,Ytest.in,family='binomial')
+ }
 }
 \seealso{
 \code{\link{cvSIDA}} \code{\link{selpscca.pred}} \code{\link{predict.SELPCCA}}\code{\link{PerformanceMetrics}}

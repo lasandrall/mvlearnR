@@ -470,7 +470,7 @@ Xtestdata[[2]] <- Xtestdata[[2]][,1:500]
 Ytest.simul <- sidaData[[4]]-1
 
 fit.selp <- selpscca.pred(Xdata[[1]], Xdata[[2]], Y.simul,fitselpCCA=NULL,
-              family="binomial")
+              family="binomial", isParallel = FALSE)
 
 pred.fit <- predict(fit.selp, newdata=Xtestdata[[1]],
                     newdata2=Xtestdata[[2]], type = "response")

@@ -14,12 +14,12 @@ umapPlot(
 \arguments{
 \item{fit}{the output from the filter.supervised() function}
 
+\item{useFilteredData}{Boolean on whether to plot UMAP on filtered or original data.
+Default is filtered data.}
+
 \item{usePrincipleComponents}{boolean on whether to apply PCA first}
 
 \item{plotIt}{boolean, whether to print the result or just return it (default = TRUE)}
-
-\item{usefilteredData}{Boolean on whether to plot UMAP on filtered or original data.
-Default is filtered data.}
 }
 \value{
 A graph of the UMAP
