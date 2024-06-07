@@ -1,3 +1,6 @@
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/jeremymchacon/mvlearnR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeremymchacon/mvlearnR/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
 # mvlearnR
 
 
