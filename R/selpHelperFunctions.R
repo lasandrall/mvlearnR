@@ -1,7 +1,8 @@
 
+#' @importFrom CVXR diag
 mysqrtminv=function(X){
   mysvd=svd(X)
-  d=diag(mysvd$d^(-0.5))
+  d=CVXR::diag(mysvd$d^(-0.5))
   out=mysvd$u%*%d%*%t(mysvd$u)
   return(out)
 }
@@ -17,6 +18,8 @@ minv=function(X){
   return(out)
 }
 
+#' @importFrom CVXR diag
+#' @importFrom stats cor
 myfastnonsparsecca=function(Xdata1,Xdata2,CovStructure){
 
   n=dim(Xdata1)[1]
@@ -26,14 +29,14 @@ myfastnonsparsecca=function(Xdata1,Xdata2,CovStructure){
   if(CovStructure=="Iden"){
     SVD=svd(t(Xdata1))
     Ux=SVD$u
-    Dx=diag(SVD$d)
+    Dx=CVXR::diag(SVD$d)
     Vx=SVD$v
     Rx=Dx%*%t(Vx)
     cRx=Rx-rowMeans(Rx)
 
     SVD=svd(t(Xdata2))
     Uy=SVD$u
-    Dy=diag(SVD$d)
+    Dy=CVXR::diag(SVD$d)
     Vy=SVD$v
     Ry=Dy%*%t(Vy)
     cRy=Ry-rowMeans(Ry)
@@ -47,18 +50,18 @@ myfastnonsparsecca=function(Xdata1,Xdata2,CovStructure){
 
     tildeB=Uy%*%tildeBr
     tildeB=tildeB/sqrt(colSums(tildeB*tildeB))
-    tilderho=abs(diag(stats::cor(Xdata1%*%tildeA, Xdata2%*%tildeB)))
+    tilderho=abs(CVXR::diag(stats::cor(Xdata1%*%tildeA, Xdata2%*%tildeB)))
   }else if(CovStructure=="Ridge"){
     SVD=svd(t(Xdata1))
     Ux=SVD$u
-    Dx=diag(SVD$d)
+    Dx=CVXR::diag(SVD$d)
     Vx=SVD$v
     Rx=Dx%*%t(Vx)
     cRx=Rx-rowMeans(Rx)
 
     SVD=svd(t(Xdata2))
     Uy=SVD$u
-    Dy=diag(SVD$d)
+    Dy=CVXR::diag(SVD$d)
     Vy=SVD$v
     Ry=Dy%*%t(Vy)
     cRy=Ry-rowMeans(Ry)
@@ -94,13 +97,13 @@ myfastnonsparsecca=function(Xdata1,Xdata2,CovStructure){
 
 
 
-
+#' @importFrom CVXR diag Variable norm1 norm_inf
 fastsvd=function(X){
   n=dim(X)[1]
   p=dim(X)[2]
   SVD=svd(t(X))
   U=SVD$u
-  D=diag(SVD$d)
+  D=CVXR::diag(SVD$d)
   V=SVD$v
 
   R=D%*%t(V)
@@ -109,7 +112,8 @@ fastsvd=function(X){
   return(list(U=U,Sigmar=Sigmar))
 }
 
-
+#' @importFrom CVXR diag Variable norm1 Problem Minimize norm_inf solve
+#' @importFrom stats cor
 selpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,mybetaold, myalphaold, tilderhoold,ncancorr,Ux,Sigma12r,Uy,Taux,Tauy,CovStructure){
   myalphamat=list()
   mybetamat=list()
@@ -149,7 +153,7 @@ selpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,mybetaold, myalphaold, tilderhoold
       constraint=list(CVXR::norm_inf(Ux%*%Sigma12r%*%t(Uy)%*%mybetaold[,ii] - tilderhoold[ii]*(myfastsvd$U%*%myfastsvd$Sigmar%*%UtrAlphai + sqrt(log(p)/n)*Alphai)) <= Taux[ii,1])
     }
     prob=CVXR::Problem(CVXR::Minimize(Objx),constraint)
-    result=solve(prob,solver="ECOS")
+    result=CVXR::solve(prob,solver="ECOS")
     alphai=result$getValue(Alphai)
 
     Betai=CVXR::Variable(q)
@@ -161,21 +165,21 @@ selpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,mybetaold, myalphaold, tilderhoold
       constraint=list(CVXR::norm_inf(Uy%*%t(Sigma12r)%*%t(Ux)%*%myalphaold[,ii] - tilderhoold[ii]*(myfastsvd$U%*%myfastsvd$Sigmar%*%UtrBetai + sqrt(log(q)/n)*Betai)) <= Tauy[ii,1])
     }
     prob=CVXR::Problem(CVXR::Minimize(Objx),constraint)
-    result=solve(prob,solver="ECOS")
+    result=CVXR::solve(prob,solver="ECOS")
     betai=result$getValue(Betai)
 
     alphai[abs(alphai)<=10^(-5)]=0
     if(all(alphai==0) || sum(sum(is.nan(alphai)!=0))){
       myalpha=alphai
     }else{
-      myalpha=alphai/norm(alphai,"2")
+      myalpha=alphai/CVXR::norm(alphai,"2")
     }
 
     betai[abs(betai)<=10^(-5)]=0
     if(all(betai==0) || sum(sum(is.nan(betai)!=0))){
       mybeta=betai
     }else{
-      mybeta=betai/norm(betai,"2")
+      mybeta=betai/CVXR::norm(betai,"2")
     }
 
     if((all(myalpha==0) || sum(sum(is.nan(myalpha)!=0))) || (all(mybeta==0)|| sum(sum(is.nan(mybeta)!=0)))){

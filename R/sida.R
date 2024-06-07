@@ -178,7 +178,7 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 
   #norm function for convergence
   normdiff=function(xnew,xold){
-    ndiff=CVXR::norm(xnew-xold,'f')^2 / norm (xold,'f')^2
+    ndiff=CVXR::norm(xnew-xold,'f')^2 / CVXR::norm(xold,'f')^2
   }
   #initialize
   iter=0
@@ -328,9 +328,12 @@ sida=function(Xdata=Xdata,Y=Y,Tau=Tau,withCov=FALSE,
 #' Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022) , Sparse Linear
 #' Discriminant Analysis for Multi-view Structured Data, Biometrics
 #'
-#' @importFrom foreach %dopar%
+#' @importFrom foreach %dopar% foreach
 #' @import RSpectra
 #' @importFrom igraph spectrum decompose
+#' @importFrom doParallel registerDoParallel
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom CVXR diag
 #'
 #' @export
 #' @examples
@@ -404,15 +407,6 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
   }
 
 
-  #set defaults
-
-  # #check if minimum of Y is 0, if so shift everything by 1
-  # if(min(YOrig)==1){
-  #   Y=YOrig+ 1
-  #   if(!is.null(Ytest)){
-  #     Ytest=YtestOrig+1
-  #   }
-  # }
 
   #If testing data are not provided, the default is to use training data
   if(is.null(Xtestdata)){
@@ -539,7 +533,7 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
   #cross validation
   if(isParallel==TRUE){
     cat("Begin", nfolds,"-folds cross-validation", "\n")
-    registerDoParallel()
+    doParallel::registerDoParallel()
     if(is.null(ncores)){
 
       # chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
@@ -556,10 +550,10 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
       ncores=parallel::detectCores()
       ncores=ceiling(ncores/2)
       }
-    cl=makeCluster(ncores)
-    registerDoParallel(cl)
+    cl=parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
     CVOut=matrix(0, nrow(gridValues), nfolds)
-    mycv=foreach(i = 1:nrow(gridValues), .combine='rbind',.export=c('sida',
+    mycv=foreach::foreach(i = 1:nrow(gridValues), .combine='rbind',.export=c('sida',
               'sidainner','myfastinner','myfastIDAnonsparse','mysqrtminv',
               'sidaclassify', 'sidatunerange','DiscriminantPlots',
               'CorrelationPlots'),.packages=c('CVXR','RSpectra')) %dopar% {
@@ -578,7 +572,7 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
       } )
     }
     CVOut=t(mycv)
-    stopCluster(cl)
+    parallel::stopCluster(cl)
   }else if(isParallel==FALSE){
     CVOut=matrix(0, nfolds, nrow(gridValues))
     for (i in 1:nfolds){
@@ -635,7 +629,7 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
       X1X2=t(X1)%*%X2/dim(X1)[1]
       X1X1=t(X1)%*%X1/dim(X1)[1]
       X2X2=t(X2)%*%X2/dim(X2)[1]
-      sumcorr3=sum(diag(X1X2%*%t(X1X2)))/(sqrt(sum(diag(X1X1%*%X1X1)))*sqrt(sum(diag(X2X2%*%X2X2))))
+      sumcorr3=sum(CVXR::diag(X1X2%*%t(X1X2)))/(sqrt(sum(CVXR::diag(X1X1%*%X1X1)))*sqrt(sum(CVXR::diag(X2X2%*%X2X2))))
       sumCorr2=sumCorr2+sumcorr3
     }
     ss[[d]]=sumCorr2/length(dd)
@@ -658,7 +652,7 @@ cvSIDA=function(Xdata=Xdata,Y=Y,withCov=FALSE,plotIt=FALSE,
       X1X2=t(X1)%*%X2/dim(X1)[1]
       X1X1=t(X1)%*%X1/dim(X1)[1]
       X2X2=t(X2)%*%X2/dim(X2)[1]
-      sumcorr3=sum(diag(X1X2%*%t(X1X2)))/(sqrt(sum(diag(X1X1%*%X1X1)))*sqrt(sum(diag(X2X2%*%X2X2))))
+      sumcorr3=sum(CVXR::diag(X1X2%*%t(X1X2)))/(sqrt(sum(CVXR::diag(X1X1%*%X1X1)))*sqrt(sum(CVXR::diag(X2X2%*%X2X2))))
       sumCorr2=sumCorr2+sumcorr3
     }
     ss[[d]]=sumCorr2/length(dd)
@@ -838,7 +832,7 @@ sidatunerange=function(Xdata,Y,ngrid=10,standardize=TRUE,
 
 
   #obtain upper and lower bounds
-  ubx=lapply(myfinner$SepAndAssocd, function(x) norm(x,'i')/1.2)
+  ubx=lapply(myfinner$SepAndAssocd, function(x) CVXR::norm(x,'i')/1.2)
   lbx=lapply(1:D, function(x) 1.2*sqrt(log(p[[x]])/n)*ubx[[x]])
   ubx=lapply(1:D, function(x) ubx[[x]])
 
@@ -975,7 +969,7 @@ sidaclassify=function(hatalpha=hatalpha,Xtestdata=Xtestdata,Xdata=Xdata,Y=Y,Assi
       ProjXtestdatad=Projtest[[d]]
       ProjXdatad=Projtrain[[d]]
       ProjXdata1d=cbind(Y,ProjXdatad)
-      Projmv=aggregate(ProjXdata1d[,-1],list(ProjXdata1d[,1]),mean)
+      Projmv=stats::aggregate(ProjXdata1d[,-1],list(ProjXdata1d[,1]),mean)
       distv=list()
       jrep=list()
       for(j in 1: nc){
@@ -1010,7 +1004,7 @@ sidaclassify=function(hatalpha=hatalpha,Xtestdata=Xtestdata,Xdata=Xdata,Y=Y,Assi
 
     ntest=dim(ProjtestJoint)[1]
     ProjtrainJointX1=cbind(Y,ProjtrainJoint)
-    Projmv=aggregate(ProjtrainJointX1[,-1],list(ProjtrainJointX1[,1]),mean)
+    Projmv=stats::aggregate(ProjtrainJointX1[,-1],list(ProjtrainJointX1[,1]),mean)
 
     distv=list()
     jrep=list()

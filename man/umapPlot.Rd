@@ -12,7 +12,7 @@ umapPlot(
 )
 }
 \arguments{
-\item{fit}{the output from the filter.supervised() function}
+\item{fit}{the output from the filter_supervised() function}
 
 \item{useFilteredData}{Boolean on whether to plot UMAP on filtered or original data.
 Default is filtered data.}
@@ -36,7 +36,7 @@ data(sidaData)
 Xdata=sidaData[[1]]
 Y=sidaData[[2]]
 
-data.red=filter.supervised(Xdata, Y,  method="t.test", padjust=TRUE, thresh=0.05,
+data.red=filter_supervised(Xdata, Y,  method="t.test", padjust=TRUE, thresh=0.05,
                  center=FALSE, scale=FALSE, Xtest=NULL)
 
 ##-----Plot Result via UMAP

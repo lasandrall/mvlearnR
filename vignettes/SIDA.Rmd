@@ -92,7 +92,7 @@ Clinical.Train=Clinical.Train[order(Clinical.Train[,1]),]
 Clinical.Test=Clinical.Test[order(Clinical.Test[,1]),]
 
 ```
-We provide functions to filter data either using supervised or unsupervised statistical methods. The function *filter.supervised()* can be used to filter each view using four methods: *linear*, *logistic*, *t-test*, and *Kruskal-Wallis (KW)* test. P-values can be adjusted for multiple hypothesis testing. The function *filter.unsupervised()* can be used to filter each view using unsupervised methods that include: *variance* and *interquartile range (IQR)* filtering. 
+We provide functions to filter data either using supervised or unsupervised statistical methods. The function *filter_supervised()* can be used to filter each view using four methods: *linear*, *logistic*, *t-test*, and *Kruskal-Wallis (KW)* test. P-values can be adjusted for multiple hypothesis testing. The function *filter_unsupervised()* can be used to filter each view using unsupervised methods that include: *variance* and *interquartile range (IQR)* filtering. 
 
 Results from the supervised filtering approach could be visualized via volcano plots using the function *volcanoPlot()*. The filtered or original data could be visualized via UMAP with the function *umapPlot()*. 
 ```{r FILTERING, eval=T}
@@ -102,7 +102,7 @@ X=list(Proteomics.Train[,-1], RNASeq.Train[,-1] )
 Xtest.in=list(Proteomics.Test[,-1], RNASeq.Test[,-1] ) #testing data will be subsetted to keep only variables that are significant in training set
 Y=Clinical.Train$DiseaseStatus.Indicator
 
-filterOmics=filter.supervised( X,
+filterOmics=filter_supervised( X,
           Y,
           method = "logistic",
           padjust=TRUE,

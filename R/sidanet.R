@@ -62,6 +62,8 @@
 #' \eqn{ntest \times D} matrix, with each column the predicted class for each data.}
 #'
 #' @seealso \code{\link{cvSIDANet}}
+#' 
+#' @importFrom CVXR norm diag
 #'
 #' @references
 #' Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022), Sparse Linear Discriminant
@@ -178,7 +180,7 @@ sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=T
 
   #norm function for convergence
   normdiff=function(xnew,xold){
-    ndiff=norm(xnew-xold,'f')^2 / norm (xold,'f')^2
+    ndiff=CVXR::norm(xnew-xold,'f')^2 / CVXR::norm (xold,'f')^2
   }
   #initialize
   iter=0
@@ -192,7 +194,10 @@ sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=T
   while(iter < maxiteration && min(min(reldiff,relObj),max(diffalpha))> thresh){
     iter=iter+1
     myalphaold=myalpha
-    mysidainner=sidanetinner(Xdata,Y,mynsparse$sqrtminvmat,myalphaold,mynsparse$tildealphamat, mynsparse$tildelambda,Tau,weight,eta,myedges,myedgeweight,mynormLaplacianG,withCov)
+    mysidainner=sidanetinner(Xdata,Y,mynsparse$sqrtminvmat,
+                             myalphaold,mynsparse$tildealphamat, 
+                             mynsparse$tildelambda,Tau,weight,eta,
+                             myedges,myedgeweight,mynormLaplacianG,withCov)
 
     myalpha=mysidainner$hatalpha
     nz=sapply(1:D, function(i) list(colSums(myalpha[[i]]!=0)))
@@ -202,11 +207,11 @@ sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=T
       break
     }
     diffalpha=mapply(normdiff, myalpha, myalphaold)
-    sumnormdiff=sum(sapply(1:D, function(d) norm(myalpha[[d]]-myalphaold[[d]],'f')^2 ))
-    sumnormold=sum(sapply(1:D, function(d) norm(myalphaold[[d]],'f')^2    ))
+    sumnormdiff=sum(sapply(1:D, function(d) CVXR::norm(myalpha[[d]]-myalphaold[[d]],'f')^2 ))
+    sumnormold=sum(sapply(1:D, function(d) CVXR::norm(myalphaold[[d]],'f')^2    ))
     reldiff=sumnormdiff/sumnormold
-    ObjNew=sum(sapply(1:D, function(d) (1-eta)*norm(myalpha[[d]],'f')^2 + eta*norm(as.matrix(mysidainner$myL[[d]])%*%myalpha[[d]],'f')^2))
-    ObjOld=sum(sapply(1:D, function(d) (1-eta)*norm(myalphaold[[d]],'f')^2 + eta*norm(as.matrix(mysidainner$myL[[d]])%*%myalphaold[[d]],'f')^2))
+    ObjNew=sum(sapply(1:D, function(d) (1-eta)*CVXR::norm(myalpha[[d]],'f')^2 + eta*CVXR::norm(as.matrix(mysidainner$myL[[d]])%*%myalpha[[d]],'f')^2))
+    ObjOld=sum(sapply(1:D, function(d) (1-eta)*CVXR::norm(myalphaold[[d]],'f')^2 + eta*CVXR::norm(as.matrix(mysidainner$myL[[d]])%*%myalphaold[[d]],'f')^2))
     relObj=abs(ObjNew-ObjOld)/ObjOld
   }
 
@@ -235,7 +240,7 @@ sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=T
       X1X2=t(X1)%*%X2/dim(X1)[1]
       X1X1=t(X1)%*%X1/dim(X1)[1]
       X2X2=t(X2)%*%X2/dim(X2)[1]
-      sumcorr3=sum(diag(X1X2%*%t(X1X2)))/(sqrt(sum(diag(X1X1%*%X1X1)))*sqrt(sum(diag(X2X2%*%X2X2))))
+      sumcorr3=sum(CVXR::diag(X1X2%*%t(X1X2)))/(sqrt(sum(CVXR::diag(X1X1%*%X1X1)))*sqrt(sum(CVXR::diag(X2X2%*%X2X2))))
       sumCorr2=sumCorr2+sumcorr3
     }
     ss[[d]]=sumCorr2/length(dd)
@@ -328,6 +333,11 @@ sidanet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,Tau=T
 #' \item{gridMethod}{Grid method used. Either GridSearch or RandomSearch}
 #'
 #' @seealso \code{\link{sidanet}}
+#' @importFrom CVXR norm diag
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom parallelly availableCores
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach foreach
 #'
 #' @references
 #' Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022), Sparse Linear Discriminant
@@ -539,7 +549,7 @@ cvSIDANet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,wit
     cat("Begin", nfolds,"-folds cross-validation", "\n")
     doParallel::registerDoParallel()
     if(is.null(ncores)){
-      ncores=parallel::detectCores()
+      ncores=parallelly::availableCores()
       ncores=ceiling(ncores/2)}
     cl=parallel::makeCluster(ncores)
     #start_time=Sys.time()
@@ -615,7 +625,7 @@ cvSIDANet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,wit
       X1X2=t(X1)%*%X2/dim(X1)[1]
       X1X1=t(X1)%*%X1/dim(X1)[1]
       X2X2=t(X2)%*%X2/dim(X2)[1]
-      sumcorr3=sum(diag(X1X2%*%t(X1X2)))/(sqrt(sum(diag(X1X1%*%X1X1)))*sqrt(sum(diag(X2X2%*%X2X2))))
+      sumcorr3=sum(CVXR::diag(X1X2%*%t(X1X2)))/(sqrt(sum(CVXR::diag(X1X1%*%X1X1)))*sqrt(sum(CVXR::diag(X2X2%*%X2X2))))
       sumCorr2=sumCorr2+sumcorr3
     }
     ss[[d]]=sumCorr2/length(dd)
@@ -638,7 +648,9 @@ cvSIDANet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,wit
       X1X2=t(X1)%*%X2/dim(X1)[1]
       X1X1=t(X1)%*%X1/dim(X1)[1]
       X2X2=t(X2)%*%X2/dim(X2)[1]
-      sumcorr3=sum(diag(X1X2%*%t(X1X2)))/(sqrt(sum(diag(X1X1%*%X1X1)))*sqrt(sum(diag(X2X2%*%X2X2))))
+      sumcorr3=(sum(CVXR::diag(X1X2%*%t(X1X2)))/
+                  (sqrt(sum(CVXR::diag(X1X1%*%X1X1)))*
+                     sqrt(sum(CVXR::diag(X2X2%*%X2X2)))))
       sumCorr2=sumCorr2+sumcorr3
     }
     ss[[d]]=sumCorr2/length(dd)
@@ -733,6 +745,9 @@ cvSIDANet=function(Xdata=Xdata,Y=Y,myedges=myedges,myedgeweight=myedgeweight,wit
 #' @details The function will return several R objects, which can be assigned to a variable.
 #' To see the results, use the “$" operator.
 #'
+#' @importFrom CVXR norm diag
+#' @importFrom stats quantile
+#'
 #' @return
 #' \item{Tauvec}{Grid values for each data, not including covariates, if available.}
 #'
@@ -821,7 +836,7 @@ sidanettunerange=function(Xdata=Xdata,Y=Y,ngrid=8,standardize=TRUE,weight=0.5,et
 
 
   #obtain upper and lower bounds
-  ubx=lapply(myfinner$SepAndAssocd, function(x) norm(x,'i')/1.2)
+  ubx=lapply(myfinner$SepAndAssocd, function(x) CVXR::norm(x,'i')/1.2)
   lbx=lapply(1:D, function(x) 1.2*sqrt(log(p[[x]])/n)*ubx[[x]])
   ubx=lapply(1:D, function(x) ubx[[x]])
 

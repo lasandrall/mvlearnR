@@ -2,7 +2,7 @@
 #'
 #' @description Produced a deviance table for supervised predictions. 
 #'
-#' @param fit the output from the filter.supervised() function
+#' @param fit the output from the filter_supervised() function
 #' @param Xtestdata1 a matrix or data.frame with the first view's test X data
 #' @param Xtestdata2 a matrix or data.frame with the second view's test X data
 #' @param Ytest a vector of test response values

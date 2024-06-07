@@ -1,3 +1,6 @@
+#' @importFrom CVXR diag norm
+#' @importFrom RSpectra eigs eigs_sim
+#' @importFrom stats aggregate
 myfastIDAnonsparse=function(Xdata, Y,weight){
 
   #   %--------------------------------------------------------------------------
@@ -46,12 +49,12 @@ myfastIDAnonsparse=function(Xdata, Y,weight){
       mysvd=svd(myX);
       Ux1=mysvd$u;
       V=mysvd$v;
-      W=diag(mysvd$d)
+      W=CVXR::diag(mysvd$d)
       R=W%*%t(V)
 
       rdata2=cbind(Y,t(R))
       rdata=t(rdata2)
-      mrd=aggregate(rdata2[,-1],list(rdata2[,1]),mean)
+      mrd=stats::aggregate(rdata2[,-1],list(rdata2[,1]),mean)
       mr=rowMeans(rdata[-1,])
 
       #nc=max(unique(Y))
@@ -72,14 +75,14 @@ myfastIDAnonsparse=function(Xdata, Y,weight){
       Sbrx=Sbrx + t(Sbrx)
       Sbx[[d]]=Sbrx
       lambda=sqrt(log(p)/n)
-      Strx=Swrx + lambda*diag(n)
+      Strx=Swrx + lambda*CVXR::diag(n)
       Strx=Strx + t(Strx)
     }else{
       #work in p space
       R=t(myX)
       rdata2=cbind((as.data.frame(Y)[,1]),R)
       rdata=t(rdata2)
-      mrd=aggregate(rdata2[,-1],list(rdata2[,1]),mean)
+      mrd=stats::aggregate(rdata2[,-1],list(rdata2[,1]),mean)
       mr=rowMeans(rdata[-1,])
 
       #nc=max(unique(Y))
@@ -117,13 +120,13 @@ myfastIDAnonsparse=function(Xdata, Y,weight){
 
     #myeigen=Re(eigs(sqrtminv%*%Sbrx%*%sqrtminv,nc-1))
     #myeigen=eigen(sqrtminv%*%Sbrx%*%sqrtminv,symmetric=TRUE)
-    myeigen=eigs_sym(sqrtminv%*%Sbrx%*%sqrtminv,nc-1,which="LM")
+    myeigen=RSpectra::eigs_sym(sqrtminv%*%Sbrx%*%sqrtminv,nc-1,which="LM")
     if(n < p){
       myalphaold1[[1]]=Ux1%*%myeigen$vectors
     }else{
       myalphaold1[[1]]=myeigen$vectors
     }
-    myalphaoldmat[[d]]=do.call(rbind,lapply(myalphaold1, function(x) x/norm(x,'2')))
+    myalphaoldmat[[d]]=do.call(rbind,lapply(myalphaold1, function(x) x/CVXR::norm(x,'2')))
     rmyalphaoldmat[[d]]=myeigen$vectors
   }
 
@@ -142,9 +145,9 @@ myfastIDAnonsparse=function(Xdata, Y,weight){
     #solution to integrative LDA
     #myinteig=Re(eigs( sqrtminvmat[[d]]%*%( w1*Sbx[[d]] +  w2*rSumassociation)%*%sqrtminvmat[[d]],nc-1));
     #myinteig=eigen(sqrtminvmat[[d]]%*%( w1*Sbx[[d]] +  w2*rSumassociation)%*%sqrtminvmat[[d]],symmetric=TRUE)
-    myinteig=eigs_sym(sqrtminvmat[[d]]%*%( w1*Sbx[[d]] +  w2*rSumassociation)%*%sqrtminvmat[[d]],nc-1,which="LM")
+    myinteig=RSpectra::eigs_sym(sqrtminvmat[[d]]%*%( w1*Sbx[[d]] +  w2*rSumassociation)%*%sqrtminvmat[[d]],nc-1,which="LM")
     myalphaold2[[1]]=myinteig$vectors
-    tildealphamat[[d]]=do.call(rbind,lapply(myalphaold2, function(x) x/norm(x,'2')))
+    tildealphamat[[d]]=do.call(rbind,lapply(myalphaold2, function(x) x/CVXR::norm(x,'2')))
     tildelambda[[d]]=myinteig$values
   }
 
@@ -153,6 +156,9 @@ myfastIDAnonsparse=function(Xdata, Y,weight){
 }
 
 
+#' @importFrom CVXR diag norm
+#' @importFrom RSpectra eigs eigs_sym
+#' @importFrom stats aggregate
 myfastinner = function(Xdata,Y,sqrtminv,myalphaoldmat,tildealphamat, weight=0.5){
 
   #check data
@@ -189,12 +195,12 @@ myfastinner = function(Xdata,Y,sqrtminv,myalphaoldmat,tildealphamat, weight=0.5)
       mysvd=svd(myX);
       Ux1=mysvd$u;
       V=mysvd$v;
-      W=diag(mysvd$d)
+      W=CVXR::diag(mysvd$d)
       R=W%*%t(V)
 
       rdata2=cbind(Y,t(R))
       rdata=t(rdata2)
-      mrd=aggregate(rdata2[,-1],list(rdata2[,1]),mean)
+      mrd=stats::aggregate(rdata2[,-1],list(rdata2[,1]),mean)
       mr=rowMeans(rdata[-1,])
 
       #nc=max(unique(Y))
@@ -215,7 +221,7 @@ myfastinner = function(Xdata,Y,sqrtminv,myalphaoldmat,tildealphamat, weight=0.5)
       Sbrx=Sbrx + t(Sbrx)
       #Sbx[[d]]=Sbrx
       lambda=sqrt(log(p)/n)
-      Strx=Swrx + lambda*diag(n)
+      Strx=Swrx + lambda*CVXR::diag(n)
       Strx=Strx + t(Strx)
 
       Ux[[d]]=Ux1
@@ -228,7 +234,7 @@ myfastinner = function(Xdata,Y,sqrtminv,myalphaoldmat,tildealphamat, weight=0.5)
       R=t(myX)
       rdata2=cbind((as.data.frame(Y)[,1]),R)
       rdata=t(rdata2)
-      mrd=aggregate(rdata2[,-1],list(rdata2[,1]),mean)
+      mrd=stats::aggregate(rdata2[,-1],list(rdata2[,1]),mean)
       mr=rowMeans(rdata[-1,])
 
       #nc=max(unique(Y))
@@ -248,7 +254,7 @@ myfastinner = function(Xdata,Y,sqrtminv,myalphaoldmat,tildealphamat, weight=0.5)
       Sbrx=Sbrx + t(Sbrx)
       # Sbx[[d]]=Sbrx
       lambda=sqrt(log(p)/n)
-      Strx=Swrx + lambda*diag(p)
+      Strx=Swrx + lambda*CVXR::diag(p)
       Strx=Strx + t(Strx)
 
       Ux[[d]]=0
@@ -289,7 +295,7 @@ myfastinner = function(Xdata,Y,sqrtminv,myalphaoldmat,tildealphamat, weight=0.5)
     }
 
     SepAndAssoc[[1]]=separationd[[d]]+ w2*Sumassociation;
-    SepAndAssoc2=lapply(SepAndAssoc, function(x) x/norm(x,'i'));
+    SepAndAssoc2=lapply(SepAndAssoc, function(x) x/CVXR::norm(x,'i'));
     SepAndAssocd[[d]]= do.call(rbind,SepAndAssoc2)
 
   }
@@ -299,15 +305,17 @@ myfastinner = function(Xdata,Y,sqrtminv,myalphaoldmat,tildealphamat, weight=0.5)
   #Sandra E. Safo
 }
 
+#' @importFrom CVXR diag 
 mysqrtminv=function(W){
   #W is symmetric, positive definite
   mysvd=svd(W);
-  d=diag(mysvd$d^(-0.5))
+  d=CVXR::diag(mysvd$d^(-0.5))
   out=mysvd$u%*%d%*%t(mysvd$u)
   result=list(sqrtminv=out)
   return(result)
 }
 
+#' @importFrom CVXR Variable norm_inf norm2 sum_entries Problem Minimize solve
 sidainner = function(Xdata,Y,sqrtminv,myalphaold,tildealpha, tildelambda,Tau,weight,withCov){
 
   #D = length(Xdata)
@@ -334,13 +342,13 @@ sidainner = function(Xdata,Y,sqrtminv,myalphaold,tildealpha, tildelambda,Tau,wei
     p=dim(Xdata[[d]])[2]
     #print(d)
     ##solve for SIDA directions
-    Alphai=Variable(p,nK)
-    Objx=sum(norm2(Alphai,axis=1))
+    Alphai=CVXR::Variable(p,nK)
+    Objx=sum(CVXR::norm2(Alphai,axis=1))
     #
     # #defining the constraints
-    constraints=list(norm_inf(sum_entries(abs(as.matrix(myfastnslda$SepAndAssocd[[d]]) - Alphai%*%as.matrix(diag(tildelambda[[d]],nrow=length(tildelambda[[d]])))), axis=1 ))<= Tau[[d]])
-    prob=Problem(Minimize(Objx),constraints)
-    result=solve(prob,solver="ECOS")
+    constraints=list(CVXR::norm_inf(CVXR::sum_entries(abs(as.matrix(myfastnslda$SepAndAssocd[[d]]) - Alphai%*%as.matrix(CVXR::diag(tildelambda[[d]],nrow=length(tildelambda[[d]])))), axis=1 ))<= Tau[[d]])
+    prob=CVXR::Problem(CVXR::Minimize(Objx),constraints)
+    result=CVXR::solve(prob,solver="ECOS")
     #result=solve(prob)
 
     #check if there's solver error, if so return all zero solutions
@@ -370,7 +378,7 @@ sidainner = function(Xdata,Y,sqrtminv,myalphaold,tildealpha, tildelambda,Tau,wei
   return(result)
 }
 
-
+#' @importFrom CVXR Variable norm_inf norm2 sum_entries Problem Minimize
 sidanetinner = function(Xdata,Y,sqrtminv,myalphaold,tildealpha, tildelambda,Tau,weight,eta,myedges,myedgeweight,mynormLaplacianG=NULL,withCov){
 
   #check data
@@ -407,14 +415,14 @@ sidanetinner = function(Xdata,Y,sqrtminv,myalphaold,tildealpha, tildelambda,Tau,
     if(max(ee)==1){
       L2=mynormLaplacianG[[d]]
       #solve for SIDANet directions
-      Alphai=Variable(p,nK)
+      Alphai=CVXR::Variable(p,nK)
       LB=as.matrix(L2)%*%Alphai
-      Objx=eta%*%sum(norm2(LB,axis=1)) +(1-eta)%*%sum(norm2(Alphai,axis=1))
+      Objx=eta%*%sum(CVXR::norm2(LB,axis=1)) +(1-eta)%*%sum(CVXR::norm2(Alphai,axis=1))
 
       #defining the constraints
-      constraints=list(norm_inf(sum_entries(abs(as.matrix(myfastnslda$SepAndAssocd[[d]]) - Alphai%*%as.matrix(diag(tildelambda[[d]],nrow=length(tildelambda[[d]])))), axis=1 ))<= Tau[[d]])
-      prob=Problem(Minimize(Objx),constraints)
-      result=solve(prob,solver="ECOS")
+      constraints=list(CVXR::norm_inf(CVXR::sum_entries(abs(as.matrix(myfastnslda$SepAndAssocd[[d]]) - Alphai%*%as.matrix(CVXR::diag(tildelambda[[d]],nrow=length(tildelambda[[d]])))), axis=1 ))<= Tau[[d]])
+      prob=CVXR::Problem(CVXR::Minimize(Objx),constraints)
+      result=CVXR::solve(prob,solver="ECOS")
 
       if(result$status=="solver_error"){
         alphai=matrix(0,nrow=p,ncol=nK)
@@ -427,13 +435,13 @@ sidanetinner = function(Xdata,Y,sqrtminv,myalphaold,tildealpha, tildelambda,Tau,
     }else if(max(myedges[[d]])==0){
       #if edge information is not available, use SIDA
       #solve for SIDANet directions
-      Alphai=Variable(p,nK)
-      Objx=sum(norm2(Alphai,axis=1))
+      Alphai=CVXR::Variable(p,nK)
+      Objx=sum(CVXR::norm2(Alphai,axis=1))
 
       #defining the constraints
-      constraints=list(norm_inf(sum_entries(abs(as.matrix(myfastnslda$SepAndAssocd[[d]]) - Alphai%*%as.matrix(diag(tildelambda[[d]],nrow=length(tildelambda[[d]])))), axis=1 ))<= Tau[[d]])
-      prob=Problem(Minimize(Objx),constraints)
-      result=solve(prob,solver="ECOS")
+      constraints=list(CVXR::norm_inf(CVXR::sum_entries(abs(as.matrix(myfastnslda$SepAndAssocd[[d]]) - Alphai%*%as.matrix(CVXR::diag(tildelambda[[d]],nrow=length(tildelambda[[d]])))), axis=1 ))<= Tau[[d]])
+      prob=CVXR::Problem(CVXR::Minimize(Objx),constraints)
+      result=CVXR::solve(prob,solver="ECOS")
 
       if(result$status=="solver_error"){
         alphai=matrix(0,nrow=p,ncol=nK)
@@ -462,7 +470,7 @@ sidanetinner = function(Xdata,Y,sqrtminv,myalphaold,tildealpha, tildelambda,Tau,
   return(result)
 }
 
-
+#' importFrom CVXR diag
 myNLaplacianG=function(Xdata=Xdata,myedges=myedges,myedgeweight=myedgeweight){
   myL=list()
   D = length(Xdata)
@@ -487,11 +495,11 @@ myNLaplacianG=function(Xdata=Xdata,myedges=myedges,myedgeweight=myedgeweight){
         #print(dim(WeightM))
         #Dv=base::rowSums(WeightM)
         Dv=apply(WeightM, 1, sum)
-        L=diag(Dv)-WeightM
+        L=CVXR::diag(Dv)-WeightM
         notZero=Dv!=0
         Dv2=Matrix(0, nrow=length(Dv),ncol=1)
         Dv2[notZero]=(Dv[Dv!=0])^(-0.5)
-        Dv3=diag(as.vector(Dv2),nrow = length(Dv2))
+        Dv3=CVXR::diag(as.vector(Dv2),nrow = length(Dv2))
         #nL=Dv3%*%L%*%Dv3
         myL[[d]]=Dv3%*%L%*%Dv3
       }else if(max(edgeweightd)==0){
@@ -505,15 +513,15 @@ myNLaplacianG=function(Xdata=Xdata,myedges=myedges,myedgeweight=myedgeweight){
         }
         #Dv=base::rowSums(AdjM)
         Dv=apply(AdjM, 1, sum)
-        L=diag(Dv)-AdjM
+        L=CVXR::diag(Dv)-AdjM
         notZero=Dv!=0
         Dv2=Matrix(0, nrow=length(Dv),ncol=1)
         Dv2[notZero]=(Dv[Dv!=0])^(-0.5)
-        Dv3=diag(as.vector(Dv2),nrow = length(Dv2))
+        Dv3=CVXR::diag(as.vector(Dv2),nrow = length(Dv2))
         myL[[d]]=Dv3%*%L%*%Dv3
       }
     }else if(max(myedges[[d]])==0){
-      myL[[d]]=Matrix(diag(rep(1,p)),sparse = TRUE)
+      myL[[d]]=Matrix(CVXR::diag(rep(1,p)),sparse = TRUE)
     }
   }
   return(myL)

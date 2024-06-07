@@ -7,7 +7,7 @@
 volcanoPlot(fit, plotIt = TRUE)
 }
 \arguments{
-\item{fit}{the output from the filter.supervised() function}
+\item{fit}{the output from the filter_supervised() function}
 
 \item{plotIt}{boolean, whether to print the result (TRUE) or just return it}
 }
@@ -29,7 +29,7 @@ Clinical= COVIDData[[3]]
 X=list(Proteomics, RNASeq)
 Y=Clinical$DiseaseStatus.Indicator
 
-data.red=filter.supervised(X, Y,  method="t.test", padjust=TRUE,adjmethod="BH",
+data.red=filter_supervised(X, Y,  method="t.test", padjust=TRUE,adjmethod="BH",
 thresh=0.05,center=TRUE, scale=TRUE, Xtest=NULL)
 
 ##-----Volcano Plot of Result

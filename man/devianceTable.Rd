@@ -7,7 +7,7 @@
 devianceTable(fit, Xtestdata1, Xtestdata2, Ytest)
 }
 \arguments{
-\item{fit}{the output from the filter.supervised() function}
+\item{fit}{the output from the filter_supervised() function}
 
 \item{Xtestdata1}{a matrix or data.frame with the first view's test X data}
 

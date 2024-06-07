@@ -296,7 +296,7 @@ VarImportance <- function(fit){
 #'González I., Lê Cao K-A., Davis, M.J. and Déjean, S. (2012).
 #'Visualising associations between paired omics data sets. J. Data Mining 5:19.
 #'
-#' @importFrom igraph vcount graph.data.frame E V delete.vertices layout.fruchterman.reingold plot.igraph
+#' @importFrom igraph vcount graph.data.frame E V delete.vertices degree layout.fruchterman.reingold plot.igraph
 #' @importFrom grDevices dev.cur dev.off jpeg tiff pdf rgb
 #' @importFrom stats cor
 #' @importFrom utils combn
@@ -348,9 +348,6 @@ networkPlot=function(object, cutoff = NULL,
   }else{
     cutoff2=cutoff
   }
-
-
-
   #code for generating network graph follow network plot in mixOmics.
   #nComb=dim(mymat$ViewCombinations)[2]
   res=list()
@@ -457,13 +454,6 @@ networkPlot=function(object, cutoff = NULL,
       stop("'show.color.key' must be a logical constant (TRUE or FALSE).",
            call. = FALSE)
 
-    # if (length(keysize) != 2 || any(!is.finite(keysize)))
-    #   stop("'keysize' must be a numeric vector of length 2.",
-    #        call. = FALSE)
-    # if (length(keysize.label) != 1 || any(!is.finite(keysize)))
-    #   stop("'keysize' must be a numeric vector of length 1.",
-    #        call. = FALSE)
-
     keysize = c(1, 1)
     keysize.label = 1
 
@@ -492,28 +482,28 @@ networkPlot=function(object, cutoff = NULL,
     idx = (abs(w) >= cutoff)
     relations = relations[idx, ]
     color.edge = color.edge[idx]
-    myplot = graph.data.frame(relations, directed = FALSE, vertices = nodes)
-    V(myplot)$label.color = "black"
-    V(myplot)$label.family = "sans"
+    myplot = igraph::graph.data.frame(relations, directed = FALSE, vertices = nodes)
+    igraph::V(myplot)$label.color = "black"
+    igraph::V(myplot)$label.family = "sans"
 
-    V(myplot)$label = c(row.names.plot, col.names.plot)
-    V(myplot)$color = color.node[1]
-    V(myplot)$color[V(myplot)$group == "y"] = color.node[2]
-    V(myplot)$shape = shape.node[1]
-    V(myplot)$shape[V(myplot)$group == "y"] = shape.node[2]
+    igraph::V(myplot)$label = c(row.names.plot, col.names.plot)
+    igraph::V(myplot)$color = color.node[1]
+    igraph::V(myplot)$color[igraph::V(myplot)$group == "y"] = color.node[2]
+    igraph::V(myplot)$shape = shape.node[1]
+    igraph::V(myplot)$shape[igraph::V(myplot)$group == "y"] = shape.node[2]
 
     if (show.edge.labels)
-      E(myplot)$label = round(E(myplot)$weight, 2)
+      igraph::E(myplot)$label = round(igraph::E(myplot)$weight, 2)
 
-    E(myplot)$label.color = "black"
-    E(myplot)$color = color.edge
-    E(myplot)$lty = lty.edge[1]
-    E(myplot)$lty[E(myplot)$weight < 0] = lty.edge[2]
-    E(myplot)$width = lwd.edge[1]
-    E(myplot)$width[E(myplot)$weight < 0] = lwd.edge[2]
+    igraph::E(myplot)$label.color = "black"
+    igraph::E(myplot)$color = color.edge
+    igraph::E(myplot)$lty = lty.edge[1]
+    igraph::E(myplot)$lty[igraph::E(myplot)$weight < 0] = lty.edge[2]
+    igraph::E(myplot)$width = lwd.edge[1]
+    igraph::E(myplot)$width[igraph::E(myplot)$weight < 0] = lwd.edge[2]
 
 
-    myplot = delete.vertices(myplot, which(degree(myplot) == 0)) #delete vertices with no edges
+    myplot = igraph::delete.vertices(myplot, which(igraph::degree(myplot) == 0)) #delete vertices with no edges
     lwid = c(keysize[1], 4)
     lhei = c(keysize[2], 4)
     lmat = matrix(c(1, 2, 3, 4), 2, 2, byrow = TRUE)
@@ -540,25 +530,26 @@ networkPlot=function(object, cutoff = NULL,
                  2)
       col = c(id$col[1:idn], "white", id$col[(idn + 1):nc])
     }
-    nn = vcount(myplot)
-    V(myplot)$label.cex = min(2.5 * cex.node.name/log(nn), 1)
-    E(myplot)$label.cex = min(2.25 * cex.edge.label/log(nn), 1)
+    nn = igraph::vcount(myplot)
+    igraph::V(myplot)$label.cex = min(2.5 * cex.node.name/log(nn), 1)
+    igraph::E(myplot)$label.cex = min(2.25 * cex.edge.label/log(nn), 1)
 
 
-    cex0 = 2 * V(myplot)$label.cex
+    cex0 = 2 * igraph::V(myplot)$label.cex
     def.par = par(no.readonly = TRUE)
     dev.new()
     par(pty = "s", mar = c(0, 0, 0, 0), mfrow = c(1, 1))
     plot(1:100, 1:100, type = "n", axes = FALSE, xlab = "", ylab = "")
-    cha = V(myplot)$label
+    cha = igraph::V(myplot)$label
     cha = paste("", cha, "")
     xh = strwidth(cha, cex = cex0) * 1.5
     yh = strheight(cha, cex = cex0) * 3
-    V(myplot)$size = xh
-    V(myplot)$size2 = yh
+    igraph::V(myplot)$size = xh
+    igraph::V(myplot)$size2 = yh
     dev.off()
     if (is.null(layout.fun)) {
-      l = layout.fruchterman.reingold(myplot, weights = (1 - abs(E(myplot)$weight)))
+      l = igraph::layout.fruchterman.reingold(myplot, 
+                                              weights = (1 - abs(igraph::E(myplot)$weight)))
       #l = layout.fruchterman.reingold(myplot, weights = E(myplot)$weight)
     }else {
       l = layout.fun(myplot)
@@ -583,13 +574,6 @@ networkPlot=function(object, cutoff = NULL,
                         edge.width=2,vertex.frame.color=vertex.frame.color)
 
 
-
-
-    # igraph::plot.igraph(myplot[[i]],vertex.size=20,vertex.color="yellow", vertex.frame.width=3,
-    #                     vertex.shape="square",vertex.label.font=2,vertex.label.font=2,vertex.frame.color="red",
-    #                     edge.size=4, cex.edge.label=20, edge.label.font=2, edge.width=2, edge.color="black")
-
-
     par(def.par)
 
     res[[jj]] = list(NetworkGraph = myplot)
@@ -598,10 +582,6 @@ networkPlot=function(object, cutoff = NULL,
     res[[jj]]$SimilirarityMatrix = mat
     res[[jj]]$cutoff = cutoff
     res[[jj]]$pairs =t(myComb[,jj])
-
-    # if (!is.null(save))
-    #    dev.off()
-
 
   }
   return(invisible(res))
@@ -840,7 +820,7 @@ networkplotinner=function(object){
 
 #-- green-black-red gradient colors --#
 #-------------------------------------#
-#' @importFrom grDevices rgb
+#' @importFrom grDevices rgb colorRampPalette colorRamp
 color.GreenRed =
   function (n, alpha = 1)
   {
@@ -866,18 +846,19 @@ color.GreenRed =
     #-- end checking --#
     #------------------#
 
-    ramp = colorRampPalette(c("green", "darkgreen", "black", "darkred", "red"))
+    ramp = grDevices::colorRampPalette(c("green", "darkgreen", "black", "darkred", "red"))
     ramp = ramp(101)
     green = ramp[1:43]
     red = ramp[59:101]
-    ramp = colorRamp(c(green, "black", red), space = "Lab")
+    ramp = grDevices::colorRamp(c(green, "black", red), space = "Lab")
 
-    rgb(ramp(seq(0, 1, length = n)), alpha = alpha, maxColorValue = 255)
+    grDevices::rgb(ramp(seq(0, 1, length = n)), alpha = alpha, maxColorValue = 255)
   }
 
 
 #motivated by color.GreenRed Palette
 #modified by Sandra Safo
+#' @importFrom grDevices colorRampPalette colorRamp rgb
 color.BlueOrange =
   function (n, alpha = 1)
   {
@@ -903,12 +884,12 @@ color.BlueOrange =
     #-- end checking --#
     #------------------#
 
-    ramp = colorRampPalette(c("#56B4E9", "blue", "#999999", "darkorange", "orange"))
+    ramp = grDevices::colorRampPalette(c("#56B4E9", "blue", "#999999", "darkorange", "orange"))
     ramp = ramp(101)
     blue = ramp[1:43]
     orange = ramp[59:101]
-    ramp = colorRamp(c(blue, "#999999", orange), space = "Lab")
+    ramp = grDevices::colorRamp(c(blue, "#999999", orange), space = "Lab")
 
-    rgb(ramp(seq(0, 1, length = n)), alpha = alpha, maxColorValue = 255)
+    grDevices::rgb(ramp(seq(0, 1, length = n)), alpha = alpha, maxColorValue = 255)
   }
 

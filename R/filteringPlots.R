@@ -4,7 +4,7 @@
 #' supervised filtering. See "umap" R package for more details on the
 #' method.
 #'
-#' @param fit the output from the filter.supervised() function
+#' @param fit the output from the filter_supervised() function
 #' @param useFilteredData Boolean on whether to plot UMAP on filtered or original data.
 #' Default is filtered data.
 #' @param usePrincipleComponents boolean on whether to apply PCA first 
@@ -25,7 +25,7 @@
 #' Xdata=sidaData[[1]]
 #' Y=sidaData[[2]]
 #'
-#' data.red=filter.supervised(Xdata, Y,  method="t.test", padjust=TRUE, thresh=0.05,
+#' data.red=filter_supervised(Xdata, Y,  method="t.test", padjust=TRUE, thresh=0.05,
 #'                  center=FALSE, scale=FALSE, Xtest=NULL)
 #'
 #' ##-----Plot Result via UMAP
@@ -86,7 +86,7 @@ umapPlot <- function(fit,
 #' @description Wrapper function for volcano plots of the results after
 #' supervised filtering.
 #'
-#' @param fit the output from the filter.supervised() function
+#' @param fit the output from the filter_supervised() function
 #' @param plotIt boolean, whether to print the result (TRUE) or just return it
 #'
 #' @return A graph of the volcano plot
@@ -107,7 +107,7 @@ umapPlot <- function(fit,
 #' X=list(Proteomics, RNASeq)
 #' Y=Clinical$DiseaseStatus.Indicator
 #'
-#' data.red=filter.supervised(X, Y,  method="t.test", padjust=TRUE,adjmethod="BH",
+#' data.red=filter_supervised(X, Y,  method="t.test", padjust=TRUE,adjmethod="BH",
 #' thresh=0.05,center=TRUE, scale=TRUE, Xtest=NULL)
 #'
 #' ##-----Volcano Plot of Result

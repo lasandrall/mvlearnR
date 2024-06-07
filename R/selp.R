@@ -41,6 +41,13 @@
 #' \item{maxcorr}{Estimated canonical correlation coefficient.}
 #' \item{tunerange}{Grid values for each dataset used for searching optimal
 #' tuning paramters.}
+#' 
+#' @importFrom parallelly availableCores
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach foreach
+#' @importFrom CVXR norm diag
+#' @importFrom stats quantile cor na.omit
 #'
 #' @seealso \code{\link{multiplescca}}
 #'
@@ -182,7 +189,7 @@ cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="
 
       doParallel::registerDoParallel()
       if(is.null(ncores)){
-        ncores=parallel::detectCores()
+        ncores=parallelly::availableCores()
         ncores=ceiling(ncores/2)}
       cl=parallel::makeCluster(ncores)
       doParallel::registerDoParallel(cl)
@@ -219,8 +226,8 @@ cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="
           myUtrain=Xdata1[-which(which.row),]%*%myhatalpha
           myVtrain=Xdata2[-which(which.row),]%*%myhatbeta
 
-          mycorrTrain=prod(abs(diag(stats::cor(myUtrain,myVtrain))))
-          mycorrTest=prod(abs(diag(stats::cor(myUtest,myVtest))))
+          mycorrTrain=prod(abs(CVXR::diag(stats::cor(myUtrain,myVtrain))))
+          mycorrTest=prod(abs(CVXR::diag(stats::cor(myUtest,myVtest))))
 
           mycorr[[ii]]=c(t(Taux), ii ,mycorrTrain, mycorrTest)
         }
@@ -273,8 +280,8 @@ cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="
           myUtrain=Xdata1[-which(which.row),]%*%myhatalpha
           myVtrain=Xdata2[-which(which.row),]%*%myhatbeta
 
-          mycorrTrain=prod(abs(diag(stats::cor(myUtrain,myVtrain))))
-          mycorrTest=prod(abs(diag(stats::cor(myUtest,myVtest))))
+          mycorrTrain=prod(abs(CVXR::diag(stats::cor(myUtrain,myVtrain))))
+          mycorrTest=prod(abs(CVXR::diag(stats::cor(myUtest,myVtest))))
 
           mycorr[[ii]]=c(t(Tauy), ii ,mycorrTrain, mycorrTest)
         }
@@ -326,8 +333,8 @@ cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="
           myUtrain=Xdata1[-which(which.row),]%*%myhatalpha
           myVtrain=Xdata2[-which(which.row),]%*%myhatbeta
 
-          mycorrTrain=prod(abs(diag(stats::cor(myUtrain,myVtrain))))
-          mycorrTest=prod(abs(diag(stats::cor(myUtest,myVtest))))
+          mycorrTrain=prod(abs(CVXR::diag(stats::cor(myUtrain,myVtrain))))
+          mycorrTest=prod(abs(CVXR::diag(stats::cor(myUtest,myVtest))))
 
           mycorr[[ii]]=c(t(Taux), ii ,mycorrTrain, mycorrTest)
         }
@@ -380,8 +387,8 @@ cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="
           myUtrain=Xdata1[-which(which.row),]%*%myhatalpha
           myVtrain=Xdata2[-which(which.row),]%*%myhatbeta
 
-          mycorrTrain=prod(abs(diag(stats::cor(myUtrain,myVtrain))))
-          mycorrTest=prod(abs(diag(stats::cor(myUtest,myVtest))))
+          mycorrTrain=prod(abs(CVXR::diag(stats::cor(myUtrain,myVtrain))))
+          mycorrTest=prod(abs(CVXR::diag(stats::cor(myUtest,myVtest))))
 
           mycorr[[ii]]=c(t(Tauy), ii ,mycorrTrain, mycorrTest)
         }
@@ -437,10 +444,10 @@ cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="
     myalpha2=myselpscca$myalphaicon
     mybeta2=myselpscca$myalphaicon
 
-    diff_alpha=norm(myalpha-myalphaold,'f')^2 / norm(myalphaold,'f')^2 #
-    diff_beta=norm(mybeta-mybetaold,'f')^2 / norm(mybetaold,'f')^2 #
-    sumnew=norm(myalpha-myalphaold,'f')^2 + norm(mybeta-mybetaold,'f')^2 #
-    sumold=norm(myalphaold,'f')^2+norm(mybetaold,'f')^2 #
+    diff_alpha=CVXR::norm(myalpha-myalphaold,'f')^2 / CVXR::norm(myalphaold,'f')^2 #
+    diff_beta=CVXR::norm(mybeta-mybetaold,'f')^2 / CVXR::norm(mybetaold,'f')^2 #
+    sumnew=CVXR::norm(myalpha-myalphaold,'f')^2 + CVXR::norm(mybeta-mybetaold,'f')^2 #
+    sumold=CVXR::norm(myalphaold,'f')^2+CVXR::norm(mybetaold,'f')^2 #
     reldiff=sumnew/sumold #
   }
 
@@ -494,6 +501,7 @@ cvselpscca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure="
 #'
 #' @seealso \code{\link{multiplescca}}  \code{\link{cvselpscca}}
 #'
+#' @importFrom CVXR norm
 #' @references
 #' Sandra E. Safo, Jeongyoun Ahn, Yongho Jeon, and Sungkyu Jung (2018),
 #'  Sparse Generalized Eigenvalue Problem with Application to Canonical
@@ -576,8 +584,8 @@ cvtunerange=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure=
   mymaxlambdabeta=matrix(rep(NA,ncancorr),nrow=ncancorr,ncol=1)
 
   for(j in 1:ncancorr){
-    mymaxlambdaalpha[j,1]= norm(Ux%*%Sigma12r%*%t(Uy)%*%tildeB[,j],"I")
-    mymaxlambdabeta[j,1] = norm(Uy%*%t(Sigma12r)%*%t(Ux)%*%tildeA[,j],"I")
+    mymaxlambdaalpha[j,1]= CVXR::norm(Ux%*%Sigma12r%*%t(Uy)%*%tildeB[,j],"I")
+    mymaxlambdabeta[j,1] = CVXR::norm(Uy%*%t(Sigma12r)%*%t(Ux)%*%tildeA[,j],"I")
   }
 
   if(CovStructure=="Iden"){
@@ -630,6 +638,8 @@ cvtunerange=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,CovStructure=
 #'  Sparse Generalized Eigenvalue Problem with Application to Canonical
 #'  Correlation Analysis for Integrative Analysis of Methylation and Gene
 #'  Expression Data. Biometrics
+#' @importFrom CVXR diag norm
+#' @importFrom stats cor
 #' @export
 #' @examples
 #' \dontrun{
@@ -742,14 +752,14 @@ multiplescca=function(Xdata1=Xdata1,Xdata2=Xdata2,ncancorr=ncancorr,Tau=Tau,CovS
       break
     }
 
-    diffalpha=norm(myalpha-myalphaold,'f')^2 / norm(myalphaold,'f')^2
-    diffbeta=norm(mybeta-mybetaold,'f')^2 / norm(mybetaold,'f')^2
-    sumnew=norm(myalpha-myalphaold,'f')^2 + norm(mybeta-mybetaold,'f')^2
-    sumold=norm(myalphaold,'f')^2+norm(mybetaold,'f')^2
+    diffalpha=CVXR::norm(myalpha-myalphaold,'f')^2 / CVXR::norm(myalphaold,'f')^2
+    diffbeta=CVXR::norm(mybeta-mybetaold,'f')^2 / CVXR::norm(mybetaold,'f')^2
+    sumnew=CVXR::norm(myalpha-myalphaold,'f')^2 + CVXR::norm(mybeta-mybetaold,'f')^2
+    sumold=CVXR::norm(myalphaold,'f')^2+CVXR::norm(mybetaold,'f')^2
     reldiff=sumnew/sumold
   }
 
-  maxcorr=round(diag(abs(stats::cor(Xdata1%*%myalpha,Xdata2%*%mybeta))),3)
+  maxcorr=round(CVXR::diag(abs(stats::cor(Xdata1%*%myalpha,Xdata2%*%mybeta))),3)
   hatalpha=myalpha
   hatbeta=mybeta
 
