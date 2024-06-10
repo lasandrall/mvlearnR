@@ -7,11 +7,11 @@
 \format{
 A list with 3 elements:
 \describe{
-  \item{\code{COVIDData$Proteomics}}{Proteomics data. A data frame of size \eqn{120 \times 264}.
+  \item{\code{Proteomic}}{Proteomics data. A data frame of size \eqn{120 \times 264}.
   Rows are samples and columns are variables.}
-  \item{\code{COVIDData$RNAseq}}{RNASeq data. A data frame of size \eqn{120 \times 5800}.
+  \item{\code{RNAseq}}{RNASeq data. A data frame of size \eqn{120 \times 5800}.
   Rows are samples and columns are variables.}
-  \item{\code{COVIDData$Clinical}}{Clinical and demographic data. A data frame of size \eqn{120 \times 18}.
+  \item{\code{Clinical}}{Clinical and demographic data. A data frame of size \eqn{120 \times 18}.
   Rows are samples and columns are variables.}
 }
 }
