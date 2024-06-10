@@ -90,7 +90,7 @@
 #' were pre-processed.
 #' @format A list with 3 elements:
 #' \describe{
-#'   \item{\code{Proteomics}}{Proteomics data. A data frame of size \eqn{120 \times 264}.
+#'   \item{\code{Proteomic}}{Proteomics data. A data frame of size \eqn{120 \times 264}.
 #'   Rows are samples and columns are variables.}
 #'   \item{\code{RNAseq}}{RNASeq data. A data frame of size \eqn{120 \times 5800}.
 #'   Rows are samples and columns are variables.}

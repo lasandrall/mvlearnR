@@ -420,185 +420,30 @@ filter_unsupervised <- function(X, method="variance", pct.keep=10,
 }
 
 
-
+#' @param X A list containing all data sources. Each row must represent a
+#' subject and each column represents a feature.
+#' @param Y An outcome vector of length equal to the number of rows in each view of X.
+#' @param method Options are "linear" for linear regression, "logistic" for logistic
+#' regression, "t.test" for a 2-sample unpaired T-test, or "kw" for a Kruskal-Wallis
+#' test. Default is "linear".
+#' @param padjust Boolean on whether or not to adjust pvalue for multiple testing.
+#' Default is "F".
+#' @param adjmethod Options are "holm", "hochberg",  "hommel", "bonferroni", "BH"
+#' "BY","fdr","none". Default is "BH" if padjust is True.
+#' @param thresh P-value threshold to determine which features to keep after filtering.
+#' Default will keep all features with a p-value < 0.05.
+#' @param center Boolean on whether or not to center the features prior to filtering.
+#' @param scale Boolean on whether or not to scale the features to have variance 1 prior to filtering.
+#' @param standardize Boolean on whether or not to center and scale the features to have mean 0 and variance 1 prior to filtering.
+#' @param log2TransForm Boolean on whether or not to log2 transform the features prior to filtering. Will return an error if TRUE but data
+#' have negative values.
+#' @param Xtest Optional list containing test data. If included, filtering will be performed
+#' only on the training data, X, but Xtest will be subsetted to the same group of features.
+#' @param CovAdjust matrix of covariates with which to adjust. default = NULL
+#' @importFrom stats lm glm p.adjust summary t.test kruskal.test
 filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmethod="BH", thresh=0.05,
                                         center=F, scale=F, standardize=F, log2TransForm=F, Xtest=NULL, CovAdjust=NULL){
-  # if(is.null(adjmethod)){
-  #   adjmethod="BH"
-  # }
-  # XOrig=X
-  # XtestOrig=Xtest
-  #
-  # for(i in 1:length(X)){
-  #
-  #   #convert data to numeric
-  #   X[[i]]=apply(as.matrix(X[[i]]), 2, as.numeric)
-  #
-  #   if(length(XtestOrig)>0){
-  #     Xtest[[i]] <- apply(as.matrix(Xtest[[i]]), 2, as.numeric)
-  #   }
-  #
-  #   if(log2TransForm){
-  #     X[[i]] <- apply(X[[i]], 2, log2)
-  #     if(length(XtestOrig)>0){
-  #       Xtest[[i]] <- apply(Xtest[[i]], 2, log2)
-  #     }
-  #   }
-  #
-  #   if(standardize){
-  #     mean.vec <- apply(X[[i]], 2, mean, na.rm=TRUE)
-  #     var.vec <- apply(X[[i]], 2, function(x) sqrt(var(x,na.rm=TRUE)))
-  #     X[[i]] <- t( (t(X[[i]]) - mean.vec) /var.vec)
-  #     if(length(XtestOrig)>0){
-  #       Xtest[[i]] <- t( (t(Xtest[[i]])-mean.vec)/var.vec)
-  #     }
-  #     #X[[i]]=apply(X[[i]], 2, function(x) scale(x))
-  #   }
-  #
-  #
-  #   if(center){
-  #     mean.vec <- apply(X[[i]], 2, mean,na.rm=TRUE)
-  #     X[[i]] <- t(t(X[[i]]) - mean.vec )
-  #     if(length(XtestOrig)>0){
-  #       Xtest[[i]] <- t(t(Xtest[[i]]) - mean.vec)
-  #     }
-  #   }
-  #   if(scale){
-  #     var.vec <- apply(X[[i]], 2, function(x) sqrt(var(x,na.rm=TRUE)))
-  #     X[[i]] <- t(t(X[[i]])/var.vec)
-  #     if(length(XtestOrig)>0){
-  #       Xtest[[i]] <- t(t(Xtest[[i]])/var.vec)
-  #     }
-  #   }
-  #
-  #   # if(standardize){
-  #   #   mean.vec <- apply(XOrig[[i]], 2, mean)
-  #   #   var.vec <- apply(XOrig[[i]], 2, function(x) sqrt(var(x)))
-  #   #   X[[i]] <- t( (t(XOrig[[i]]) - mean.vec) /var.vec)
-  #   #   # if(length(XtestOrig)>0){
-  #   #   #   Xtest[[i]] <- t(t(Xtest[[i]])/var.vec)
-  #   #   # }
-  #   #   #X[[i]]=apply(X[[i]], 2, function(x) scale(x))
-  #   # }
-  #
-  #
-  #
-  # }
-  #
-  # coef.mat <- pval.mat <- pval.adj.mat <- red.mat <- mean.mat <- X.red <- Xtest.red <- list()
-  # for(i in 1:length(X)){
-  #   if(!is.null(CovAdjust)){
-  #     mydata=cbind.data.frame(X[[i]],CovAdjust)
-  #   }else{
-  #     CovAdjust=1
-  #   }
-  #   if(method == "linear"){
-  #     coef.mat[[i]] <- apply(X[[i]], 2, function(x)
-  #       lm(as.numeric(Y) ~ as.numeric(x) + CovAdjust,data=mydata)$coefficients[2])
-  #     pval.mat[[i]] <- apply(X[[i]], 2, function(x)
-  #       summary(lm(as.numeric(Y) ~ as.numeric(x)) + CovAdjust,data=mydata)$coefficients[2,4])
-  #   }else if(method == "logistic"){
-  #     coef.mat[[i]] <- apply(X[[i]], 2, function(x)
-  #       glm(factor(Y) ~ as.numeric(x) , family = binomial())$coefficients[2])
-  #     pval.mat[[i]] <- apply(X[[i]], 2, function(x)
-  #       summary(glm(factor(Y) ~ as.numeric(x) ,family = binomial()))$coefficients[2,4])
-  #   }else if(method == "t.test"){
-  #     coef.mat[[i]] <- apply(X[[i]], 2, function(x)
-  #       t.test(as.numeric(x) ~ factor(Y))$estimate[1]-t.test(as.numeric(x) ~ factor(Y))$estimate[2])
-  #     pval.mat[[i]] <- apply(X[[i]], 2, function(x)
-  #       t.test(as.numeric(x) ~ factor(Y))$p.value)
-  #     #coef.mat[[i]] <- pval.mat[[i]]*NA
-  #   }else if(method == "kw"){
-  #     coef.mat[[i]] <- apply(X[[i]], 2, function(x)
-  #       kruskal.test(as.numeric(x) ~ factor(Y))$statistic)
-  #     pval.mat[[i]] <- apply(X[[i]], 2, function(x)
-  #       kruskal.test(as.numeric(x) ~ factor(Y))$p.value)
-  #   }else{
-  #     cat("Warning: Method does not exist")
-  #     quit()
-  #   }
-  #
-  #
-  #
-  #   if(padjust==TRUE){
-  #     pval.adj.mat[[i]] <-p.adjust(pval.mat[[i]], method=adjmethod)
-  #     red.mat[[i]] <- 1:ncol(X[[i]]) %in% which(pval.adj.mat[[i]] < thresh)
-  #     X.red[[i]] <- X[[i]][,red.mat[[i]]]
-  #     pval.mat[[i]]=pval.adj.mat[[i]]
-  #   }else{
-  #     red.mat[[i]] <- 1:ncol(X[[i]]) %in% which(pval.mat[[i]] < thresh)
-  #     X.red[[i]] <- X[[i]][,red.mat[[i]]]
-  #   }
-  #
-  #   if(length(Xtest)>0){
-  #     Xtest.red[[i]] <- Xtest[[i]][,red.mat[[i]]]
-  #   }
-  # }
-  #
-  # # #label for ttest
-  # # if(method=="t.test"){
-  # #   che=as.data.frame(t.test(as.numeric(X[[1]][,1]) ~ factor(Y))$estimate)
-  # #   mean.diff.label=rownames(che)[1]-rownames(che)[2]
-  # # }
-  #
-  # temp <- data.frame(Coef = NULL,
-  #                    Pval = NULL,
-  #                    Keep = NULL,
-  #                    View = NULL)
-  # for(i in 1:length(X)){
-  #   t1 <- data.frame(Coef = coef.mat[[i]],
-  #                    Pval = pval.mat[[i]],
-  #                    Keep = red.mat[[i]],
-  #                    View = i)
-  #   temp <- rbind(temp,t1)
-  #
-  #
-  #   # if(method=="t.test"){
-  #   #   colnames(temp)[1]="Mean Difference"
-  #   # }else if(method=="linear"){
-  #   #   colnames(temp)[1]="Coef"
-  #   # }else if(method=="logistic"){
-  #   #   colnames(temp)[1]="Log ORs"
-  #   # }else if(method=="kw"){
-  #   #   colnames(temp)[1]="Coef"
-  #   # }
-  #
-  #
-  # }
-  #
-  # #print results for top 10 significant variables by views
-  # for(i in 1:length(X)){
-  #   mydata2=temp[temp$View==i,]
-  #   mydata2.Sorted= mydata2[order(mydata2[,2]),]
-  #   mydatathresh=mydata2.Sorted[mydata2.Sorted[,2]< thresh, ]
-  #   if(length(mydatathresh)==0){
-  #     print(paste0("No variable is significnat for View ",i))
-  #     print(mydatathresh)
-  #   }else{
-  #     print(paste0("Printing top 10 results for  significnat variables for View ",i))
-  #     print(mydatathresh[1:10,])
-  #   }
-  # }
-  #
-  # #i should add padjust to output
-  # result <- list(X=X.red, Y=Y,
-  #                Xtest=Xtest.red,
-  #                method=method,
-  #                pval.mat=temp,
-  #                significant.thresh=thresh,
-  #                adjmethod=adjmethod,
-  #                X_Original=XOrig,
-  #                Xtest_Original=XtestOrig,
-  #                Center=center,
-  #                Scale=scale,
-  #                Log2Transform=log2TransForm,
-  #                Standardize=standardize)
-  # return(result)
-  
-  # filter_supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH", thresh=0.05,
-  #                               center=FALSE, scale=FALSE, standardize=FALSE, log2TransForm=FALSE, Xtest=NULL){
-  
-  #allows to make thresh a vector of length X data
+
   if(length(thresh)==1){
     thresh=matrix(thresh,nrow=length(X),ncol=1)
   }

@@ -470,7 +470,10 @@ sidanetinner = function(Xdata,Y,sqrtminv,myalphaold,tildealpha, tildelambda,Tau,
   return(result)
 }
 
-#' importFrom CVXR diag
+#' @importFrom CVXR diag
+#' @param Xdata list of X data matrices
+#' @param myedges matrix of edge data
+#' @param myedgeweight matrix of edge weights
 myNLaplacianG=function(Xdata=Xdata,myedges=myedges,myedgeweight=myedgeweight){
   myL=list()
   D = length(Xdata)
