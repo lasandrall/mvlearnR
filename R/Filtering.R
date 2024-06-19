@@ -33,8 +33,7 @@
 #'   \item{method}{Method used for filtering}
 #'   \item{pval.mat}{Dataset containing the calculated p-values for each feature, coefficients, and whether significant.}
 #'
-#' @import umap
-#' @import stats
+#' @importFrom umap umap
 #' @importFrom stats binomial glm kruskal.test lm p.adjust prcomp t.test var
 #'
 #' @export
@@ -45,7 +44,7 @@
 #' Xdata=sidaData[[1]]
 #' Y=sidaData[[2]]
 #'
-#' data.red=filter.supervised(Xdata, Y,  method="t.test", padjust=FALSE,adjmethod=NULL, thresh=0.05,
+#' data.red=filter_supervised(Xdata, Y,  method="t.test", padjust=FALSE,adjmethod=NULL, thresh=0.05,
 #' center=FALSE, scale=FALSE, standardize=FALSE, log2TransForm=FALSE, Xtest=NULL)
 #'
 #' ##-----Plot Result via UMAP
@@ -74,7 +73,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #############################################################################################################
 
-filter.supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH", thresh=0.05,
+filter_supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH", thresh=0.05,
                               center=FALSE, scale=FALSE, standardize=FALSE, log2TransForm=FALSE, Xtest=NULL){
   if(is.null(adjmethod)){
     adjmethod="BH"
@@ -272,7 +271,6 @@ filter.supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH
 #'   \item{method}{Method used for filtering}
 #'   \item{var.mat}{Dataset containing the calculated mean and variances for each feature.}
 #'
-#' @import stats
 #' @importFrom stats binomial glm kruskal.test lm p.adjust prcomp t.test var
 #' @export
 #' @examples
@@ -281,7 +279,7 @@ filter.supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH
 #'
 #' Xdata=sidaData[[1]]
 #'
-#' data.red=filter.unsupervised(Xdata,  method="variance", pct.keep=10,
+#' data.red=filter_unsupervised(Xdata,  method="variance", pct.keep=10,
 #'                     center=FALSE, scale=FALSE, standardize=FALSE,  log2TransForm=FALSE,
 #'                      Xtest=NULL)
 
@@ -309,8 +307,8 @@ filter.supervised <- function(X, Y, method="linear", padjust=FALSE,adjmethod="BH
 #############################################################################################################
 
 
-filter.unsupervised <- function(X, method="variance", pct.keep=10,
-                              center=FALSE, scale=FASLE,standardize=FALSE,  log2TransForm=FALSE,
+filter_unsupervised <- function(X, method="variance", pct.keep=10,
+                              center=FALSE, scale=FALSE,standardize=FALSE,  log2TransForm=FALSE,
                               Xtest=NULL){
   var.mat <- mean.mat <- red.mat <- X.red <- Xtest.red <- list()
 
@@ -422,161 +420,234 @@ filter.unsupervised <- function(X, method="variance", pct.keep=10,
 }
 
 
-#' UMAP Plot
-#'
-#' @description Wrapper function to plot a UMAP of the results after
-#' supervised filtering. See "umap" R package for more details on the
-#' method.
-#'
-#' @param object the output from the filter.supervised() function
-#' @param filteredData Boolean on whether to plot UMAP on filtered or original data.
-#' Default is filtered data.
-#'
-#' @return A graph of the UMAP
-#'
-#' @import umap
-#' @import ggplot2
-#' @importFrom stats prcomp
-#'
-#' @export
-#'
-#' @examples
-#' ##---- read in data
-#' data(sidaData)
-#'
-#' Xdata=sidaData[[1]]
-#' Y=sidaData[[2]]
-#'
-#' data.red=filter.supervised(Xdata, Y,  method="t.test", padjust=TRUE, thresh=0.05,
-#'                  center=FALSE, scale=FALSE, Xtest=NULL)
-#'
-#' ##-----Plot Result via UMAP
-#' umapPlot(data.red)
-umapPlot <- function(object,filteredData=TRUE){
-  view.pca<-view.umap<-list()
-  ##If supervised with binary/categorical outcome, plot 2 UMAPs
-  #plot 1 = UMAP on filtered data
-  #Seems Y has to be numeric
+#' @param X A list containing all data sources. Each row must represent a
+#' subject and each column represents a feature.
+#' @param Y An outcome vector of length equal to the number of rows in each view of X.
+#' @param method Options are "linear" for linear regression, "logistic" for logistic
+#' regression, "t.test" for a 2-sample unpaired T-test, or "kw" for a Kruskal-Wallis
+#' test. Default is "linear".
+#' @param padjust Boolean on whether or not to adjust pvalue for multiple testing.
+#' Default is "F".
+#' @param adjmethod Options are "holm", "hochberg",  "hommel", "bonferroni", "BH"
+#' "BY","fdr","none". Default is "BH" if padjust is True.
+#' @param thresh P-value threshold to determine which features to keep after filtering.
+#' Default will keep all features with a p-value < 0.05.
+#' @param center Boolean on whether or not to center the features prior to filtering.
+#' @param scale Boolean on whether or not to scale the features to have variance 1 prior to filtering.
+#' @param standardize Boolean on whether or not to center and scale the features to have mean 0 and variance 1 prior to filtering.
+#' @param log2TransForm Boolean on whether or not to log2 transform the features prior to filtering. Will return an error if TRUE but data
+#' have negative values.
+#' @param Xtest Optional list containing test data. If included, filtering will be performed
+#' only on the training data, X, but Xtest will be subsetted to the same group of features.
+#' @param CovAdjust matrix of covariates with which to adjust. default = NULL
+#' @importFrom stats lm glm p.adjust summary t.test kruskal.test
+filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmethod="BH", thresh=0.05,
+                                        center=F, scale=F, standardize=F, log2TransForm=F, Xtest=NULL, CovAdjust=NULL){
 
-  for(i in 1:length(object$X)){
-
-    if(filteredData==FALSE){
-      mydata=object$X_Original[[i]]
-    }else{
-      mydata=object$X[[i]]
+  if(length(thresh)==1){
+    thresh=matrix(thresh,nrow=length(X),ncol=1)
+  }
+  
+  if(is.null(adjmethod)){
+    adjmethod="BH"
+  }
+  XOrig=X
+  XtestOrig=Xtest
+  
+  for(i in 1:length(X)){
+    
+    if(log2TransForm){
+      #check data
+      if(min(X[[1]])<0){
+        stop("'negative values in data, cannot log2-transform'",
+             call. = FALSE)
+      }
+      X[[i]] <- apply(X[[i]], 2, log2)
+      if(length(XtestOrig)>0){
+        Xtest[[i]] <- apply(Xtest[[i]], 2, log2)
+      }
     }
-
-    view.umap[[i]] <- umap(cbind(mydata, object$Y))
-
-    #PCA
-    t1 <- prcomp(mydata, rank.=10)
-    view.pca[[i]] <- umap(cbind(t1$x, object$Y))
-
-    my.cols <- c(rgb(0,0,0,alpha=0.8), #grey
-                 rgb(1,0,0,alpha=0.8), #red
-                 rgb(0,0,1,alpha=0.8), #blue
-                 rgb(0,1,0,alpha=0.8)) #green
-    print(
-      ggplot2::ggplot(as.data.frame(view.umap[[i]]$layout), aes(view.umap[[i]]$layout[,1], view.umap[[i]]$layout[,2], col=factor(object$Y))) +
-        geom_point() + theme_bw() + xlab("UMAP Component 1") +
-        ylab("UMAP Component 2") +
-        ggtitle( paste("View", i, "- UMAP on filtered data")) +
-        scale_colour_manual(values=my.cols) +
-        theme(axis.title = element_text(face="bold"))+
-        theme(axis.text = element_text(face="bold"))+
-        guides(color = guide_legend(title = "Outcome"))
-    )
-    print(
-      ggplot2::ggplot(as.data.frame(view.pca[[i]]$layout), aes(view.pca[[i]]$layout[,1], view.pca[[i]]$layout[,2], col=factor(object$Y))) +
-        geom_point() + theme_bw() + xlab("UMAP Component 1") +
-        ylab("UMAP Component 2") +
-        ggtitle(paste("View", i, "- UMAP on PCA filtered data")) +
-        theme(axis.title = element_text(face="bold"))+
-        theme(axis.text = element_text(face="bold"))+
-        scale_colour_manual(values=my.cols) +
-        guides(color = guide_legend(title = "Outcome"))
-    )
-    Sys.sleep(5)
-
+    
+    if(standardize){
+      mean.vec <- apply(X[[i]], 2, mean, na.rm=TRUE)
+      var.vec <- apply(X[[i]], 2, function(x) sqrt(var(x,na.rm=TRUE)))
+      X[[i]] <- t( (t(X[[i]]) - mean.vec) /var.vec)
+      if(length(XtestOrig)>0){
+        Xtest[[i]] <- t( (t(Xtest[[i]])-mean.vec)/var.vec)
+      }
+      #X[[i]]=apply(X[[i]], 2, function(x) scale(x))
+    }
+    
+    
+    if(center){
+      mean.vec <- apply(X[[i]], 2, mean,na.rm=TRUE)
+      X[[i]] <- t(t(X[[i]]) - mean.vec )
+      if(length(XtestOrig)>0){
+        Xtest[[i]] <- t(t(Xtest[[i]]) - mean.vec)
+      }
+    }
+    if(scale){
+      var.vec <- apply(X[[i]], 2, function(x) sqrt(var(x,na.rm=TRUE)))
+      X[[i]] <- t(t(X[[i]])/var.vec)
+      if(length(XtestOrig)>0){
+        Xtest[[i]] <- t(t(Xtest[[i]])/var.vec)
+      }
+    }
+    
+    # if(standardize){
+    #   mean.vec <- apply(XOrig[[i]], 2, mean)
+    #   var.vec <- apply(XOrig[[i]], 2, function(x) sqrt(var(x)))
+    #   X[[i]] <- t( (t(XOrig[[i]]) - mean.vec) /var.vec)
+    #   # if(length(XtestOrig)>0){
+    #   #   Xtest[[i]] <- t(t(Xtest[[i]])/var.vec)
+    #   # }
+    #   #X[[i]]=apply(X[[i]], 2, function(x) scale(x))
+    # }
+    
+    
+    
   }
-
+  
+  coef.mat <- pval.mat <- pval.adj.mat <- red.mat <- mean.mat <- X.red <- Xtest.red <- mydata <- list()
+  for(i in 1:length(X)){
+    if(method == "linear"){
+      if (!is.null(CovAdjust)){
+        mydata[[i]]=cbind.data.frame(Y,X[[i]], CovAdjust)
+        merged_cov <- paste(colnames(CovAdjust),collapse=' + ')
+        colY=colnames(mydata[[1]])[1]
+        fmt <- c(paste(c(paste(c(colY,"~ %s"), collapse = ' '),merged_cov), collapse = ' + '))
+        fo.strings <- as.data.frame(outer(fmt, colnames(X[[i]]), sprintf))
+        coef.mat[[i]]=apply(fo.strings, 2, function(formulas)
+          lm(formulas,data = mydata[[i]])$coefficients[2])
+        pval.mat[[i]]= apply(fo.strings, 2, function(formulas)
+          summary(lm(formulas, data = mydata[[i]]))$coefficients[2,4])
+      }else if(is.null(CovAdjust)){
+        coef.mat[[i]] <- apply(X[[i]], 2, function(x)
+          lm(as.numeric(Y) ~ as.numeric(x))$coefficients[2])
+        pval.mat[[i]] <- apply(X[[i]], 2, function(x)
+          summary(lm(as.numeric(Y) ~ as.numeric(x)))$coefficients[2,4])
+      }
+    }else if(method == "logistic"){
+      if (!is.null(CovAdjust)){
+        mydata[[i]]=cbind.data.frame(Y,X[[i]], CovAdjust)
+        merged_cov <- paste(colnames(CovAdjust),collapse=' + ')
+        colY=colnames(mydata[[1]])[1]
+        fmt <- c(paste(c(paste(c(colY,"~ %s"), collapse = ' '),merged_cov), collapse = ' + '))
+        fo.strings <- as.data.frame(outer(fmt, colnames(X[[i]]), sprintf))
+        coef.mat[[i]]=apply(fo.strings, 2, function(formulas)
+          glm(formulas, family=binomial(link='logit'), data = mydata[[i]])$coefficients[2])
+        che=glm(Y ~ A0A075B6H9 + Age + Sex,family=binomial(link='logit'), data = mydata[[i]] )$coefficients[2]
+        pval.mat[[i]]= apply(fo.strings, 2, function(formulas)
+          summary(glm(formulas, family=binomial(link='logit'),data = mydata[[i]]))$coefficients[2,4])
+        
+        # for(j in 1:264){
+        #   print(j)
+        #   che=glm(fo.strings[j],family=binomial(link='logit'), data = mydata[[i]] )$coefficients[2]
+        # }
+        
+        
+      }else if(is.null(CovAdjust)){
+        coef.mat[[i]] <- apply(X[[i]], 2, function(x)
+          glm(factor(Y) ~ as.numeric(x), family = binomial())$coefficients[2])
+        pval.mat[[i]] <- apply(X[[i]], 2, function(x)
+          summary(glm(factor(Y) ~ as.numeric(x), family = binomial()))$coefficients[2,4])
+      }
+    }else if(method == "t.test"){
+      coef.mat[[i]] <- apply(X[[i]], 2, function(x)
+        t.test(as.numeric(x) ~ factor(Y))$estimate[1]-t.test(as.numeric(x) ~ factor(Y))$estimate[2])
+      pval.mat[[i]] <- apply(X[[i]], 2, function(x)
+        t.test(as.numeric(x) ~ factor(Y))$p.value)
+      #coef.mat[[i]] <- pval.mat[[i]]*NA
+    }else if(method == "kw"){
+      coef.mat[[i]] <- apply(X[[i]], 2, function(x)
+        kruskal.test(as.numeric(x) ~ factor(Y))$statistic)
+      pval.mat[[i]] <- apply(X[[i]], 2, function(x)
+        kruskal.test(as.numeric(x) ~ factor(Y))$p.value)
+    }else{
+      cat("Warning: Method does not exist")
+      quit()
+    }
+    if(padjust==TRUE){
+      pval.adj.mat[[i]] <-p.adjust(pval.mat[[i]], method=adjmethod)
+      red.mat[[i]] <- 1:ncol(X[[i]]) %in% which(pval.adj.mat[[i]] < thresh[i])
+      X.red[[i]] <- X[[i]][,red.mat[[i]]]
+      pval.mat[[i]]=pval.adj.mat[[i]]
+    }else{
+      red.mat[[i]] <- 1:ncol(X[[i]]) %in% which(pval.mat[[i]] < thresh[i])
+      X.red[[i]] <- X[[i]][,red.mat[[i]]]
+    }
+    
+    if(length(Xtest)>0){
+      Xtest.red[[i]] <- Xtest[[i]][,red.mat[[i]]]
+    }
+  }
+  
+  # #label for ttest
+  # if(method=="t.test"){
+  #   che=as.data.frame(t.test(as.numeric(X[[1]][,1]) ~ factor(Y))$estimate)
+  #   mean.diff.label=rownames(che)[1]-rownames(che)[2]
+  # }
+  
+  temp <- data.frame(Coef = NULL,
+                     Pval = NULL,
+                     Keep = NULL,
+                     View = NULL)
+  t1=list()
+  for(i in 1:length(X)){
+    
+    t1[[i]] <- data.frame(Coef = coef.mat[[i]],
+                          Pval = pval.mat[[i]],
+                          Keep = red.mat[[i]],
+                          View = i)
+    temp <- rbind(temp,t1[[i]])
+    
+    
+    
+    # if(method=="t.test"){
+    #   colnames(temp)[1]="Mean Difference"
+    # }else if(method=="linear"){
+    #   colnames(temp)[1]="Coef"
+    # }else if(method=="logistic"){
+    #   colnames(temp)[1]="Log ORs"
+    # }else if(method=="kw"){
+    #   colnames(temp)[1]="Coef"
+    # }
+    
+    
+  }
+  
+  #print results for top 10 significant variables by views
+  for(i in 1:length(X)){
+    mydata2=temp[temp$View==i,]
+    mydata2.Sorted= mydata2[order(mydata2[,2]),]
+    mydatathresh=mydata2.Sorted[mydata2.Sorted[,2]< thresh[i], ]
+    if(length(mydatathresh)==0){
+      print(paste0("No variable is significnat for View ",i))
+      print(mydatathresh)
+    }else{
+      print(paste0("Printing top 10 results for  significant variables for View ",i))
+      print(mydatathresh[1:10,])
+    }
+  }
+  
+  result <- list(X=X.red, Y=Y,
+                 Xtest=Xtest.red,
+                 method=method,
+                 #pval.mat=temp,
+                 pval.mat=t1,
+                 significant.thresh=thresh,
+                 padjust=padjust,
+                 adjmethod=adjmethod,
+                 X_Original=XOrig,
+                 Xtest_Original=XtestOrig,
+                 Center=center,
+                 Scale=scale,
+                 Log2Transform=log2TransForm,
+                 Standardize=standardize,
+                 CovAdjust=CovAdjust)
+  return(result)
 }
 
-#' Volcano Plot
-#'
-#' @description Wrapper function for volcano plots of the results after
-#' supervised filtering.
-#'
-#' @param object the output from the filter.supervised() function
-#'
-#' @return A graph of the volcano plot
-#' @import ggplot2
-#'
-#' @export
-#'
-#' @examples
-#' ##---- read in data
-#' data(COVID)
-#'
-#' #make omics data numeric
-#' Proteomics= apply(as.matrix(COVIDData[[1]]), 2, as.numeric)
-#' RNASeq= apply(as.matrix(COVIDData[[2]]), 2, as.numeric)
-#' Clinical= COVIDData[[3]]
-#' X=list(Proteomics, RNASeq)
-#' Y=Clinical$DiseaseStatus.Indicator
-#'
-#' data.red=filter.supervised(X, Y,  method="t.test", padjust=TRUE,adjmethod="BH",
-#' thresh=0.05,center=TRUE, scale=TRUE, Xtest=NULL)
-#'
-#' ##-----Volcano Plot of Result
-#' volcanoPlot(data.red)
 
-volcanoPlot <- function(object){
-  mydatad=object[["pval.mat"]]
-  method=object$method
-  padjust=object$padjust
-  myplot=list()
-  for(i in 1:length(object$X)){
-    mydata2=mydatad[mydatad$View==i,]
-    mydata=cbind.data.frame(mydata2$Coef,mydata2$Pval,mydata2$Keep, sub("\\;.*", "", rownames(mydata2)))
-    colnames(mydata)=c("myCoeff","Pval", "Significance", "VarNames")
-    mydata=mydata[order(mydata[,2], mydata[,1]),] #order by p-value and coeff
-    mydata3=mydata[mydata$Significance==TRUE,]
-    mydata3=mydata3[order(mydata3[,1], mydata3[,2]),] #order by  coeff and pvalue
-    nrows=dim(mydata3)[1]
-    mylist=mydata3[c(1:15,(nrows-14):nrows), 4]
-    #print(mylist)
-    #mylist=sub("\\;.*", "", mylist)
-    print(ggplot2::ggplot(mydata, aes(myCoeff, -log10(Pval),label=VarNames)) +
-            geom_point(aes(color = Significance)) +
-            geom_hline(yintercept=-log10(0.05), linetype="dashed", color="red")+
-            geom_text(data=subset(mydata, VarNames %in% mylist), check_overlap = TRUE, size=4,
-                      hjust=0, nudge_x = -0.25, fontface="bold")+
-            xlab(
-              if(method=="logistic"){
-                expression("Log Odds Ratio")
-              }else if(method=="linear"){
-                expression("Means")
-              }else if(method=="t.test"){
-                expression("Mean Difference")
-              }else if(method=="kw"){
-                expression("KW Test Statistic")
-              } ) +
-            ylab(
-              if(padjust==TRUE){
-                expression("-log"[10]*"padj")
-              }else{
-                expression("-log"[10]*"p")
-              } ) +
-            scale_color_manual(values = c("#999999", "#0072B2", "#56B4E9")) +
-            guides(colour = guide_legend(override.aes = list(size=5))) +
-            theme_bw() +
-            theme(axis.title = element_text(face="bold"))+
-            theme(axis.text = element_text(face="bold"))+
-            ggtitle(  paste0("Volcano Plot for View " , i))
 
-    )
-    Sys.sleep(5)
 
-  }
-}

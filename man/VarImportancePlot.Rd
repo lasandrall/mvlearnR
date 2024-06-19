@@ -4,10 +4,14 @@
 \alias{VarImportancePlot}
 \title{Variable Importance Plot}
 \usage{
-VarImportancePlot(object)
+VarImportancePlot(fit, max.loadings = 20, plotIt = TRUE)
 }
 \arguments{
-\item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
+\item{fit}{the output from cvSIDA, cvSIDANet, or cvselpcca methods}
+
+\item{max.loadings}{the maximum number of variables to show per view (default = 20)}
+
+\item{plotIt}{boolean; if TRUE shows the plots, otherwise returns them as a list of ggplots}
 }
 \value{
 A graph of the absolute loadings for variables selected. The variables
@@ -18,14 +22,16 @@ Wrapper function to visualize loadings for variables selected
 by SIDA, SIDANet, and SELPCCA methods.
 }
 \examples{
-##---- load SIDA data
+\dontrun{
+#' ##---- load SIDA data
 data("sidaData")
 Xdata <- sidaData[[1]]
 Y <- sidaData[[2]]
 Xtestdata <- sidaData[[3]]
 Ytest <- sidaData[[4]]
 ##---- call cross validation
-mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest, isParallel = FALSE)
 ##----  Obtain variable importance plot
-VarImportancePlot(mycv)
+VarImportancePlot(mycv, max.loadings = 15)
+}
 }

@@ -101,6 +101,7 @@ The function will return several R objects, which can be assigned to a variable.
 To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
  #call sida
 data(sidaData)
 ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -112,7 +113,7 @@ Ytest=sidaData[[4]]
 
 ##---- call cross validation
 mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest,
-            isParallel=TRUE,ncores=NULL,gridMethod='RandomSearch',
+            isParallel=FALSE,gridMethod='RandomSearch',
             AssignClassMethod='Joint',nfolds=5,ngrid=8,standardize=TRUE,
             maxiteration=20, weight=0.5,thresh=1e-03)
 
@@ -126,14 +127,15 @@ hatalpha=mycv$hatalpha
  #train metrics
  Y.pred=mycv$PredictedClass.train-1 #to get this in 0 and 1
  Y.train=Y-1 #to get this in 0 and 1
- train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
+ train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial')
 
  print(train.metrics)
  #obtain predicted class
  Y.pred=mycv$PredictedClass-1 #to get this in 0 and 1
  Ytest.in=Ytest-1 #to get this in 0 and 1
- test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=FALSE)
+ test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial')
  print(test.metrics)
+ }
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022) , Sparse Linear

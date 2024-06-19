@@ -53,6 +53,7 @@ Performs classification using nearest centroid on separate or
 combined estimated discriminant vectors, and predicts class membership.
 }
 \examples{
+\dontrun{
  #call sida
 data(sidaData)
 ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -77,6 +78,7 @@ mysida.PredClass.Joint=mysida.classify.Joint$PredictedClass
 mysida.classify.Separate=sidaclassify(mysida$hatalpha,Xtestdata,Xdata,Y,
                                      AssignClassMethod='Separate')
 mysida.PredClass.Separate=mysida.classify.Separate$PredictedClass
+}
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022) , Sparse Linear

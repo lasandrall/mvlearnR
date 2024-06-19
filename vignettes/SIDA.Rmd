@@ -92,7 +92,7 @@ Clinical.Train=Clinical.Train[order(Clinical.Train[,1]),]
 Clinical.Test=Clinical.Test[order(Clinical.Test[,1]),]
 
 ```
-We provide functions to filter data either using supervised or unsupervised statistical methods. The function *filter.supervised()* can be used to filter each view using four methods: *linear*, *logistic*, *t-test*, and *Kruskal-Wallis (KW)* test. P-values can be adjusted for multiple hypothesis testing. The function *filter.unsupervised()* can be used to filter each view using unsupervised methods that include: *variance* and *interquartile range (IQR)* filtering. 
+We provide functions to filter data either using supervised or unsupervised statistical methods. The function *filter_supervised()* can be used to filter each view using four methods: *linear*, *logistic*, *t-test*, and *Kruskal-Wallis (KW)* test. P-values can be adjusted for multiple hypothesis testing. The function *filter_unsupervised()* can be used to filter each view using unsupervised methods that include: *variance* and *interquartile range (IQR)* filtering. 
 
 Results from the supervised filtering approach could be visualized via volcano plots using the function *volcanoPlot()*. The filtered or original data could be visualized via UMAP with the function *umapPlot()*. 
 ```{r FILTERING, eval=T}
@@ -102,7 +102,7 @@ X=list(Proteomics.Train[,-1], RNASeq.Train[,-1] )
 Xtest.in=list(Proteomics.Test[,-1], RNASeq.Test[,-1] ) #testing data will be subsetted to keep only variables that are significant in training set
 Y=Clinical.Train$DiseaseStatus.Indicator
 
-filterOmics=filter.supervised( X,
+filterOmics=filter_supervised( X,
           Y,
           method = "logistic",
           padjust=TRUE,
@@ -156,7 +156,9 @@ Ytest.in=Clinical.Test$DiseaseStatus.Indicator
 
 fit.cvsida <- cvSIDA(Xdata, Y,
                      Xtestdata = Xtest.in,
-                     Ytest = Ytest.in+1, plotIt = F)
+                     Ytest = Ytest.in+1,
+                     isParallel = FALSE,
+                     plotIt = FALSE)
 
 
 #From implementing SIDA, we observed that 26 proteins and 23 genes have nonzero coefficients, which suggests that these proteins and genes maximize both correlation between the proteomics and RNASeq data (estimated correlation is 0.42) as well as separation between those with and without COVID-19. 
@@ -175,13 +177,15 @@ The estimated train correlation is 0.41. Further, the performance metrics, espec
 #train metrics
 Y.pred=fit.cvsida$PredictedClass.train-1 #to get this in 0 and 1
 Y.train=filterOmics$Y
-train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
+PerformanceMetricsPlot(Y.pred,Y.train,family='binomial')
+train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial')
 print(train.metrics)
 
 
 #obtain predicted class
 Y.pred=fit.cvsida$PredictedClass-1 
-test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=FALSE)
+PerformanceMetrics(Y.pred,Ytest.in,family='binomial')
+test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial')
 print(test.metrics)
 
 
@@ -297,7 +301,7 @@ myedgeweight=sidanetData[[6]]
 
  ##---- call cross validation
 mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
-     Ytest=Ytest)
+     Ytest=Ytest, isParallel = FALSE)
 
 
 ```

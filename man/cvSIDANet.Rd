@@ -120,6 +120,7 @@ The function will return several R objects, which can be assigned to a variable.
 To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
 ##---- read in data
 data(sidanetData)
 
@@ -133,7 +134,7 @@ myedges=sidanetData[[5]]
 myedgeweight=sidanetData[[6]]
 
  mycv=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
-    Ytest=Ytest,isParallel=TRUE,ncores=NULL,gridMethod='RandomSearch',
+    Ytest=Ytest,isParallel=FALSE,ncores=NULL,gridMethod='RandomSearch',
     AssignClassMethod='Joint',nfolds=5,ngrid=8,standardize=TRUE,
     maxiteration=20, weight=0.5,thresh=1e-03,eta=0.5)
 
@@ -142,6 +143,7 @@ test.error=mycv$sidaneterror
 test.correlation=mycv$sidanetcorrelation
 optTau=mycv$optTau
 hatalpha=mycv$hatalpha
+}
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022), Sparse Linear Discriminant

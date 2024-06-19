@@ -91,7 +91,7 @@ Clinical.Test=Clinical.Test[order(Clinical.Test[,1]),]
 
 ```
 
-We provide functions to filter data either using supervised or unsupervised statistical methods. The function *filter.supervised()* can be used to filter each view using four methods: *linear*, *logistic*, *t-test*, and *Kruskal-Wallis (KW)* test. P-values can be adjusted for multiple hypothesis testing. The function *filter.unsupervised()* can be used to filter each view using unsupervised methods that include: *variance* and *interquartile range (IQR)* filtering. 
+We provide functions to filter data either using supervised or unsupervised statistical methods. The function *filter_supervised()* can be used to filter each view using four methods: *linear*, *logistic*, *t-test*, and *Kruskal-Wallis (KW)* test. P-values can be adjusted for multiple hypothesis testing. The function *filter_unsupervised()* can be used to filter each view using unsupervised methods that include: *variance* and *interquartile range (IQR)* filtering. 
 
 Results from the supervised filtering approach could be visualized via volcano plots using the function *volcanoPlot()*. The filtered or original data could be visualized via UMAP with the function *umapPlot()*. 
 ```{r FILTERING, eval=T}
@@ -101,7 +101,7 @@ X=list(Proteomics.Train[,-1], RNASeq.Train[,-1] )
 Xtest.in=list(Proteomics.Test[,-1], RNASeq.Test[,-1] ) #testing data will be subsetted to keep only variables that are significant in training set
 Y=Clinical.Train$DiseaseStatus.Indicator
 
-filterOmics=filter.supervised( X,
+filterOmics=filter_supervised( X,
           Y,
           method = "logistic",
           padjust=TRUE,
@@ -138,7 +138,8 @@ Based on the results, there are 78 proteins with nonzero coefficients in the fir
 Xdata1 <- filterOmics$X[[1]] #proteomics
 Xdata2 <- filterOmics$X[[2]] #RNASeq
 
-mycvselpcca=cvselpscca(Xdata1, Xdata2, ncancorr=2)
+mycvselpcca=cvselpscca(Xdata1, Xdata2, ncancorr=2, 
+                       isParallel = FALSE)
 
 
 ```
@@ -188,7 +189,8 @@ Predict out of sample data and obtain train and test performance metrics.
 newpredictions=predict(myresult.HFD45, newdata=Xdata1, newdata2=Xdata2) 
 Y.pred=round(newpredictions$pred.mod)
 
-train.metrics=PerformanceMetrics(Y.pred,Y.HFD45,family='gaussian',isPlot=TRUE)
+PerformanceMetricsPlot(Y.pred,Y.HFD45,family='gaussian')
+train.metrics=PerformanceMetrics(Y.pred,Y.HFD45,family='gaussian')
 print(train.metrics)
 
 
@@ -199,8 +201,8 @@ Y.test=as.numeric(Clinical.Test$HFD45)
 
 newpredictions=predict(myresult.HFD45, newdata=Xtest1, newdata2=Xtest2) 
 Y.pred=round(newpredictions$pred.mod)
-
-test.metrics=PerformanceMetrics(Y.pred,Y.test,family='gaussian',isPlot=TRUE)
+PerformanceMetricsPlot(Y.pred,Y.test,family='gaussian')
+test.metrics=PerformanceMetrics(Y.pred,Y.test,family='gaussian')
 print(test.metrics)
 
 
@@ -250,7 +252,8 @@ newpredictions=predict(myresult, newdata=Xdata1, newdata2=Xdata2)
 
 Y.pred=newpredictions$pred.mod # Y.pred A vector of predicted values. For SELPCCA, this is a vector of
 #predicted probabilities. For SIDA and SIDANet, this is a vector of predicted class. 
-train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
+PerformanceMetricsPlot(Y.pred,Y.train,family='binomial')
+train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial')
 print(train.metrics)
 
 
@@ -262,7 +265,8 @@ Y.test=Clinical.Test$DiseaseStatus.Indicator
 newpredictions=predict(myresult, newdata=Xtest1, newdata2=Xtest2) 
 
 Y.pred=newpredictions$pred.mod #predicted probabilities
-test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=FALSE)
+PerformanceMetricsPlot(Y.pred,Y.test,family='binomial')
+test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial')
 print(test.metrics)
 
 
@@ -374,8 +378,7 @@ By default, dashed lines indicate negative associations and solid lines represen
 
 Here's the relevance network for results using SELPCCA. We set the correlation cutoff to 0.58 for a less dense network.  
 
-```{r NetworkPlotSELP ,eval=T}
-dev.off()
+```{r NetworkPlotSELP ,eval=T, fig.width= 7, fig.height = 6}
 networkPlot(mycvselpcca, cutoff=0.58)
 
 #The plot suggests that the protein Immunoglobulin lambda variable 3-1 (UID P01715) is highly positively correlated with many genes (including CDC6, CCNA2, UBE2C), and the protein Alpha-2-HS-glycoprotein (UID P02765) is highly negatively correlated with many genes (including CCNA2 and CDC6). 
@@ -406,7 +409,6 @@ In this example, we show the top 7 variables with largest absolute weights on th
 Protein ID A0A075B6H9 appears to be highly correlated with P02792. The gene UBE2C is loaded on the first canonical vector; genes UPK3A and GPR35 are loaded on the second canonical vector.
 
 ```{r LoadingsPlot1, eval=T}
-
 LoadingsPlots(mycvselpcca,keep.loadings = c(7,3))
 
 #Protein ID A0A075B6H9 appears to be highly correlated with P02792. The gene UBE2C is loaded on the first canonical vector; genes UPK3A and GPR35 are loaded on the second canonical vector.
@@ -468,7 +470,7 @@ Xtestdata[[2]] <- Xtestdata[[2]][,1:500]
 Ytest.simul <- sidaData[[4]]-1
 
 fit.selp <- selpscca.pred(Xdata[[1]], Xdata[[2]], Y.simul,fitselpCCA=NULL,
-              family="binomial")
+              family="binomial", isParallel = FALSE)
 
 pred.fit <- predict(fit.selp, newdata=Xtestdata[[1]],
                     newdata2=Xtestdata[[2]], type = "response")
@@ -477,7 +479,7 @@ summary(pred.fit$pred.mod)
 
 #Performance metrics
 Y.pred=round(pred.fit$pred.mod)
-test.metrics=PerformanceMetrics(Y.pred,Ytest.simul,family='binomial',isPlot=TRUE)
+PerformanceMetricsPlot(Y.pred,Ytest.simul,family='binomial')
 
 
 ```

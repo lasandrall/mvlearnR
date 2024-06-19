@@ -6,7 +6,7 @@
 \usage{
 networkPlot(
   object,
-  cutoff = 0.5,
+  cutoff = NULL,
   color.node = NULL,
   lty.edge = c("solid", "dashed"),
   show.edge.labels = FALSE,
@@ -20,11 +20,11 @@ networkPlot(
 \arguments{
 \item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
 
-\item{cutoff}{a numeric value between 0 and 1 of similarity cutoff to use when
-generating graphs. Variable pairs with high
+\item{cutoff}{a vector containing  numeric values between 0 and 1 of similarity cutoff to use when
+generating graphs. Length of vector is number of pairwise data combinations. Variable pairs with high
 similarity measure may be of interest. The relevance of the associations can be explored by changing the cutoff.
 This can also be used to reduce the size of the graph, for dense network. Default is 0.5 meaning that graph will only be generated
-for variable pairs with similarity value greater than 0.5.}
+for variable pairs with similarity value greater than 0.5 for each data pair.}
 
 \item{color.node}{vector of length two, specifying the colors of nodes for pairs of views. Defaults
 to white and yellow.}
@@ -71,6 +71,7 @@ has potential to shed light on the complex associations between pairs of views.
 The function will return D R objects, where D is the number of views. To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
 ##---- load SIDA data
 data("sidaData")
 Xdata <- sidaData[[1]]
@@ -78,9 +79,11 @@ Y <- sidaData[[2]]
 Xtestdata <- sidaData[[3]]
 Ytest <- sidaData[[4]]
 ##---- call cross validation
-mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,Ytest=Ytest)
+mycv=cvSIDA(Xdata,Y,withCov=FALSE,plotIt=FALSE, Xtestdata=Xtestdata,
+Ytest=Ytest, isParallel = FALSE)
 ##----  Obtain relevance network
 networkPlot(mycv,cutoff=0.7)
+}
 }
 \references{
 Elise Palzer and Sandra E. Safo 2023. Submitted

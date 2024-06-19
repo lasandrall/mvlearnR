@@ -105,6 +105,7 @@ The function will return several R objects, which can be assigned
  to a variable. To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
 ##---- read in data
 data(sidaData)
 
@@ -114,7 +115,7 @@ Y=sidaData[[2]]-1
 
 myresult=selpscca.pred(Xdata1, Xdata2, Y,fitselpCCA=NULL, family="binomial",
              event=NULL,model.separately=FALSE, ncancorr=1,
-             CovStructure="Iden", isParallel=TRUE, ncores=NULL,
+             CovStructure="Iden", isParallel=FALSE, ncores=NULL,
              nfolds=5, ngrid=10, standardize=TRUE,thresh=0.0001,
              maxiteration=20, showProgress=T)
 
@@ -139,6 +140,7 @@ newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2, type="
 Y.pred=newPredictions$pred.mod #predicted probabilities
 test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
 print(test.metrics)
+}
 }
 \references{
 Sandra E. Safo, Jeongyoun Ahn, Yongho Jeon, and Sungkyu Jung (2018),

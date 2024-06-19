@@ -73,6 +73,7 @@
 #'  Expression Data. Biometrics
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(sidaData)
 #'
@@ -82,7 +83,7 @@
 #'
 #' myresult=selpscca.pred(Xdata1, Xdata2, Y,fitselpCCA=NULL, family="binomial",
 #'              event=NULL,model.separately=FALSE, ncancorr=1,
-#'              CovStructure="Iden", isParallel=TRUE, ncores=NULL,
+#'              CovStructure="Iden", isParallel=FALSE, ncores=NULL,
 #'              nfolds=5, ngrid=10, standardize=TRUE,thresh=0.0001,
 #'              maxiteration=20, showProgress=T)
 #'
@@ -107,6 +108,7 @@
 #'Y.pred=newPredictions$pred.mod #predicted probabilities
 #'test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
 #'print(test.metrics)
+#' }
 
 
 selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
@@ -207,7 +209,8 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
                  data.matrix=all.selp.dat,
                  family=family,
                  InputData=list(Xdata1,Xdata2),
-                 method="selpscca.pred")
+                 method="selpscca.pred",
+                 model.separately = model.separately)
 
   class(result) <- "SELPCCA"
 
@@ -229,13 +232,14 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #' @param newdata2 A matrix of size \eqn{n \times q} for the second dataset. Rows are
 #'        samples and columns are variables.
 #' @param type See predict.glm() and predict.coxph() for type options and defaults.
-#'
+#' @param ... Additional arguments passed to predict.
 #' @return An object containing the output from predict.glm() or predict.coxph()
 #'
 #' @seealso \code{\link{cvSIDA}}  \code{\link{sidatunerange}}
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #' ##---- read in data
 #' data(sidaData)
 #'
@@ -247,7 +251,7 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #'
 #'myresult=selpscca.pred(Xdata1, Xdata2, Y,fitselpCCA=NULL, family="binomial",
 #'                       event=NULL,model.separately=FALSE, ncancorr=1,
-#'                       CovStructure="Iden", isParallel=TRUE, ncores=NULL,
+#'                       CovStructure="Iden", isParallel=FALSE, ncores=NULL,
 #'                       nfolds=5, ngrid=10, standardize=TRUE,thresh=0.0001,
 #'                       maxiteration=20, showProgress=T)
 #'
@@ -272,8 +276,9 @@ selpscca.pred <- function(Xdata1, Xdata2, Y, fitselpCCA=NULL, family="gaussian",
 #'Y.pred=newPredictions$pred.mod #predicted probabilities
 #'test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
 #'print(test.metrics)
+#'}
 
-predict.SELPCCA <- function(object, newdata, newdata2, type="response"){
+predict.SELPCCA <- function(object, newdata, newdata2, type="response", ...){
   newdata=apply(as.matrix(newdata), 2, as.numeric)
   newdata2=apply(as.matrix(newdata2), 2, as.numeric)
   scoresX1=newdata %*% object$selp.fit$hatalpha

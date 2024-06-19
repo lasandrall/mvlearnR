@@ -50,6 +50,7 @@ The function will return an R object with grid values for each data,
  not including covariates, if available. To see the results, use the “$" operator.
 }
 \examples{
+\dontrun{
  #call sida
 data(sidaData)
 ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -80,14 +81,15 @@ predictedClass=mysida$PredictedClass
  #train metrics
  Y.pred=mysida$PredictedClass.train-1 #to get this in 0 and 1
  Y.train=Y-1 #to get this in 0 and 1
- train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial',isPlot=FALSE)
+ train.metrics=PerformanceMetrics(Y.pred,Y.train,family='binomial')
  print(train.metrics)
 
  #obtain test predicted class
  Y.pred=mysida$PredictedClass-1 #to get this in 0 and 1
  Ytest.in=Ytest-1 #to get this in 0 and 1
- test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial',isPlot=FALSE)
+ test.metrics=PerformanceMetrics(Y.pred,Ytest.in,family='binomial')
  print(test.metrics)
+ }
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2022) , Sparse Linear

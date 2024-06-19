@@ -9,7 +9,8 @@ CorrelationPlots(
   Ytest = Ytest,
   hatalpha = hatalpha,
   method.used = "SIDA",
-  color.palette = NULL
+  color.palette = NULL,
+  plotIt = TRUE
 )
 }
 \arguments{
@@ -26,18 +27,21 @@ Options are "SIDA" and "SELPCCA". Default is "SIDA"}
 
 \item{color.palette}{character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)}
+
+\item{plotIt}{boolean; if TRUE, plots the plots. If FALSE, only returns the plots. This is useful to customize the ggplots.}
 }
 \value{
-\item{NULL}{}
+\item{ggplot}{}
 }
 \description{
 Plots for visualizing correlation between estimated
 discriminant vectors for pairwise data.
 }
 \details{
-The function will return correlation plot(s).
+The function will return either a single ggplot (n views == 2), or a list of ggplots (n views > 2).
 }
 \examples{
+\dontrun{
  #call sida
 data(sidaData)
 ##---- call sida algorithm to estimate discriminant vectors, and predict on testing data
@@ -66,7 +70,8 @@ predictedClass=mysida$PredictedClass
 
 ##----plot discriminant and correlation plots
 #---------Correlation plot
-mycorrplot=CorrelationPlots(Xtestdata,Ytest,mysida$hatalpha)
+CorrelationPlots(Xtestdata,Ytest,mysida$hatalpha)
+}
 
 }
 \references{

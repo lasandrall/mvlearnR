@@ -4,7 +4,7 @@
 \alias{predict.SELPCCA}
 \title{Prediction for out-of-sample data for SELPCCA predict}
 \usage{
-\method{predict}{SELPCCA}(object, newdata, newdata2, type = "response")
+\method{predict}{SELPCCA}(object, newdata, newdata2, type = "response", ...)
 }
 \arguments{
 \item{object}{A fitted model of class SELPCCA}
@@ -16,6 +16,8 @@ samples and columns are variables.}
 samples and columns are variables.}
 
 \item{type}{See predict.glm() and predict.coxph() for type options and defaults.}
+
+\item{...}{Additional arguments passed to predict.}
 }
 \value{
 An object containing the output from predict.glm() or predict.coxph()
@@ -26,6 +28,7 @@ an out-of-sample dataset based on a fitted SELPCCA model and then use
 that information to predict Y based on the fitted GLM or Cox model.
 }
 \examples{
+\dontrun{
 ##---- read in data
 data(sidaData)
 
@@ -37,7 +40,7 @@ Y=sidaData[[2]]-1
 
 myresult=selpscca.pred(Xdata1, Xdata2, Y,fitselpCCA=NULL, family="binomial",
                       event=NULL,model.separately=FALSE, ncancorr=1,
-                      CovStructure="Iden", isParallel=TRUE, ncores=NULL,
+                      CovStructure="Iden", isParallel=FALSE, ncores=NULL,
                       nfolds=5, ngrid=10, standardize=TRUE,thresh=0.0001,
                       maxiteration=20, showProgress=T)
 
@@ -62,6 +65,7 @@ newPredictions=predict(myresult, newdata=Xtestdata1, newdata2=Xtestdata2, type="
 Y.pred=newPredictions$pred.mod #predicted probabilities
 test.metrics=PerformanceMetrics(Y.pred,Y.test,family='binomial',isPlot=TRUE)
 print(test.metrics)
+}
 }
 \seealso{
 \code{\link{cvSIDA}}  \code{\link{sidatunerange}}

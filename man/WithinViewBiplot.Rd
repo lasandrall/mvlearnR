@@ -5,17 +5,20 @@
 \title{Biplots for Discriminant Scores or Canonical Correlation Variates for each View}
 \usage{
 WithinViewBiplot(
-  object,
+  fit,
   Y,
   Xtest = NULL,
   color.palette = NULL,
-  keep.loadings = NULL
+  keep.loadings = NULL,
+  plotIt = TRUE
 )
 }
 \arguments{
-\item{object}{the output from SIDA, SIDANet, and SELPCCA methods}
+\item{fit}{the output from SIDA, SIDANet, and SELPCCA methods}
 
 \item{Y}{a vector of class membership for grouping canonical correlatoin variates and discriminant scores.}
+
+\item{Xtest}{list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.}
 
 \item{color.palette}{character vector of length K (number of classes), specifying the colors to use for the classes, respectively.
 Defaults to shades of blue and orange (color.BlueOrange). Other option includes red and green combinations (color.GreenRed)}
@@ -26,7 +29,7 @@ in situations where the number of variables selected is large, and could clutter
 than the variables selected, it will be set to the maximum number of variables selected for each view.
 Default is plotting all selected variables.}
 
-\item{A}{list of D entries containing test data. If not null, scores for biplots will be constructed for testing data.}
+\item{plotIt}{boolean, if TRUE, prints the plots. If FALSE, returns the ggplots as an object or list. This is useful to customize the ggplots.}
 }
 \value{
 \item{NULL}{}
@@ -44,9 +47,10 @@ only be generated for classification and association problems with 3 or more cla
 or for CCA problems with two or more canonical correlation vectors requested (i.e. ncancorr > 1 for SELPCCA).
 }
 \details{
-The function will return loading plots, one for each view.
+The function will either show the plots (if plotIt == TRUE) or return a list of loading plots, one for each view.
 }
 \examples{
+\dontrun{
 data("sidanetData")
 Xdata <- sidanetData[[1]]
 Y <- sidanetData[[2]] #class membership already coded as 1,2,...
@@ -57,8 +61,9 @@ myedges=sidanetData[[5]]
 myedgeweight=sidanetData[[6]]
 ##---- call cross validation
 mycvsidanet=cvSIDANet(Xdata,Y,myedges,myedgeweight,withCov=FALSE,plotIt=FALSE,Xtestdata=Xtestdata,
-                     Ytest=Ytest)
+                     Ytest=Ytest, isParallel = FALSE)
 WithinViewBiplot(mycvsidanet,Y, color.palette=NULL,keep.loadings=c(3,3))
+}
 }
 \references{
 Sandra E. Safo, Eun Jeong Min, and Lillian Haine (2023), Sparse Linear Discriminant
