@@ -1,5 +1,5 @@
 #' @importFrom CVXR diag norm
-#' @importFrom RSpectra eigs eigs_sim
+#' @importFrom RSpectra eigs eigs_sym
 #' @importFrom stats aggregate
 myfastIDAnonsparse=function(Xdata, Y,weight){
 
@@ -305,7 +305,7 @@ myfastinner = function(Xdata,Y,sqrtminv,myalphaoldmat,tildealphamat, weight=0.5)
   #Sandra E. Safo
 }
 
-#' @importFrom CVXR diag 
+#' @importFrom CVXR diag
 mysqrtminv=function(W){
   #W is symmetric, positive definite
   mysvd=svd(W);

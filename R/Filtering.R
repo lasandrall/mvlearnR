@@ -440,22 +440,22 @@ filter_unsupervised <- function(X, method="variance", pct.keep=10,
 #' @param Xtest Optional list containing test data. If included, filtering will be performed
 #' only on the training data, X, but Xtest will be subsetted to the same group of features.
 #' @param CovAdjust matrix of covariates with which to adjust. default = NULL
-#' @importFrom stats lm glm p.adjust summary t.test kruskal.test
+#' @importFrom stats lm glm p.adjust  t.test kruskal.test
 filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmethod="BH", thresh=0.05,
                                         center=F, scale=F, standardize=F, log2TransForm=F, Xtest=NULL, CovAdjust=NULL){
 
   if(length(thresh)==1){
     thresh=matrix(thresh,nrow=length(X),ncol=1)
   }
-  
+
   if(is.null(adjmethod)){
     adjmethod="BH"
   }
   XOrig=X
   XtestOrig=Xtest
-  
+
   for(i in 1:length(X)){
-    
+
     if(log2TransForm){
       #check data
       if(min(X[[1]])<0){
@@ -467,7 +467,7 @@ filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmeth
         Xtest[[i]] <- apply(Xtest[[i]], 2, log2)
       }
     }
-    
+
     if(standardize){
       mean.vec <- apply(X[[i]], 2, mean, na.rm=TRUE)
       var.vec <- apply(X[[i]], 2, function(x) sqrt(var(x,na.rm=TRUE)))
@@ -477,8 +477,8 @@ filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmeth
       }
       #X[[i]]=apply(X[[i]], 2, function(x) scale(x))
     }
-    
-    
+
+
     if(center){
       mean.vec <- apply(X[[i]], 2, mean,na.rm=TRUE)
       X[[i]] <- t(t(X[[i]]) - mean.vec )
@@ -493,7 +493,7 @@ filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmeth
         Xtest[[i]] <- t(t(Xtest[[i]])/var.vec)
       }
     }
-    
+
     # if(standardize){
     #   mean.vec <- apply(XOrig[[i]], 2, mean)
     #   var.vec <- apply(XOrig[[i]], 2, function(x) sqrt(var(x)))
@@ -503,11 +503,11 @@ filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmeth
     #   # }
     #   #X[[i]]=apply(X[[i]], 2, function(x) scale(x))
     # }
-    
-    
-    
+
+
+
   }
-  
+
   coef.mat <- pval.mat <- pval.adj.mat <- red.mat <- mean.mat <- X.red <- Xtest.red <- mydata <- list()
   for(i in 1:length(X)){
     if(method == "linear"){
@@ -539,13 +539,13 @@ filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmeth
         che=glm(Y ~ A0A075B6H9 + Age + Sex,family=binomial(link='logit'), data = mydata[[i]] )$coefficients[2]
         pval.mat[[i]]= apply(fo.strings, 2, function(formulas)
           summary(glm(formulas, family=binomial(link='logit'),data = mydata[[i]]))$coefficients[2,4])
-        
+
         # for(j in 1:264){
         #   print(j)
         #   che=glm(fo.strings[j],family=binomial(link='logit'), data = mydata[[i]] )$coefficients[2]
         # }
-        
-        
+
+
       }else if(is.null(CovAdjust)){
         coef.mat[[i]] <- apply(X[[i]], 2, function(x)
           glm(factor(Y) ~ as.numeric(x), family = binomial())$coefficients[2])
@@ -576,33 +576,33 @@ filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmeth
       red.mat[[i]] <- 1:ncol(X[[i]]) %in% which(pval.mat[[i]] < thresh[i])
       X.red[[i]] <- X[[i]][,red.mat[[i]]]
     }
-    
+
     if(length(Xtest)>0){
       Xtest.red[[i]] <- Xtest[[i]][,red.mat[[i]]]
     }
   }
-  
+
   # #label for ttest
   # if(method=="t.test"){
   #   che=as.data.frame(t.test(as.numeric(X[[1]][,1]) ~ factor(Y))$estimate)
   #   mean.diff.label=rownames(che)[1]-rownames(che)[2]
   # }
-  
+
   temp <- data.frame(Coef = NULL,
                      Pval = NULL,
                      Keep = NULL,
                      View = NULL)
   t1=list()
   for(i in 1:length(X)){
-    
+
     t1[[i]] <- data.frame(Coef = coef.mat[[i]],
                           Pval = pval.mat[[i]],
                           Keep = red.mat[[i]],
                           View = i)
     temp <- rbind(temp,t1[[i]])
-    
-    
-    
+
+
+
     # if(method=="t.test"){
     #   colnames(temp)[1]="Mean Difference"
     # }else if(method=="linear"){
@@ -612,10 +612,10 @@ filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmeth
     # }else if(method=="kw"){
     #   colnames(temp)[1]="Coef"
     # }
-    
-    
+
+
   }
-  
+
   #print results for top 10 significant variables by views
   for(i in 1:length(X)){
     mydata2=temp[temp$View==i,]
@@ -629,7 +629,7 @@ filter_supervised_covadjust <- function(X, Y, method="linear", padjust=F,adjmeth
       print(mydatathresh[1:10,])
     }
   }
-  
+
   result <- list(X=X.red, Y=Y,
                  Xtest=Xtest.red,
                  method=method,
